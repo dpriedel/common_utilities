@@ -17,6 +17,7 @@
 #ifndef  _UTILITIES_INC_
 #define  _UTILITIES_INC_
 
+#include <chrono>
 #include <locale>
 #include <string>
 #include <string_view>
@@ -25,6 +26,7 @@
 
 #include <boost/assert.hpp>
 
+#include <date/date.h>
 #include <fmt/format.h>
 
 // This ctype facet does NOT classify spaces and tabs as whitespace
@@ -69,6 +71,12 @@ inline std::vector<T> split_string(std::string_view string_data, char delim)
 	}
     return results;
 }
+
+date::year_month_day StringToDateYMD(const std::string& input_format, const std::string& the_date);
+
+std::string LocalDateTimeAsString(std::chrono::system_clock::time_point a_date_time);
+
+date::year_month_day StringToDateYMD(const std::string& input_format, std::string the_date);
 
 
 #endif   // ----- #ifndef _UTILITIES_INC_  ----- 

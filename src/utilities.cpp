@@ -18,6 +18,24 @@
 
 #include "utilities.h"
 
+date::year_month_day StringToDateYMD(const std::string& input_format, const std::string& the_date)
+{
+    std::istringstream in{the_date};
+    date::sys_days tp;
+    in >> date::parse(input_format, tp);
+    BOOST_ASSERT_MSG(! in.fail() && ! in.bad(), catenate("Unable to parse given date: ", the_date).c_str());
+    date::year_month_day result = tp;
+    BOOST_ASSERT_MSG(result.ok(), catenate("Invalid date: ", the_date).c_str());
+    return result;
+}		// -----  end of method tringToDateYMD  ----- 
+
+inline std::string LocalDateTimeAsString(std::chrono::system_clock::time_point a_date_time)
+{
+    auto t = date::make_zoned(date::current_zone(), a_date_time);
+    std::string ts = date::format("%a, %b %d, %Y at %I:%M:%S %p %Z", t);
+    return ts;
+}
+
 
 namespace boost
 {
