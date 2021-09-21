@@ -72,11 +72,15 @@ inline std::vector<T> split_string(std::string_view string_data, char delim)
     return results;
 }
 
-date::year_month_day StringToDateYMD(const std::string& input_format, const std::string& the_date);
+std::chrono::system_clock::time_point StringToTimePoint(std::string_view input_format, std::string_view the_date);
+
+date::year_month_day StringToDateYMD(std::string_view input_format, std::string_view the_date);
+
+// this function includes the time zone
 
 std::string LocalDateTimeAsString(std::chrono::system_clock::time_point a_date_time);
 
-date::year_month_day StringToDateYMD(const std::string& input_format, std::string the_date);
+std::string DateTimeAsString(std::chrono::system_clock::time_point a_date_time);
 
 
 #endif   // ----- #ifndef _UTILITIES_INC_  ----- 

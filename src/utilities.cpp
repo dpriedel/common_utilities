@@ -16,25 +16,61 @@
 
 #include <stdexcept>
 
+#include <date/tz.h>
+#include <string_view>
+
 #include "utilities.h"
 
-date::year_month_day StringToDateYMD(const std::string& input_format, const std::string& the_date)
-{
-    std::istringstream in{the_date};
-    date::sys_days tp;
-    in >> date::parse(input_format, tp);
-    BOOST_ASSERT_MSG(! in.fail() && ! in.bad(), catenate("Unable to parse given date: ", the_date).c_str());
-    date::year_month_day result = tp;
-    BOOST_ASSERT_MSG(result.ok(), catenate("Invalid date: ", the_date).c_str());
-    return result;
-}		// -----  end of method tringToDateYMD  ----- 
 
-inline std::string LocalDateTimeAsString(std::chrono::system_clock::time_point a_date_time)
+// ===  FUNCTION  ======================================================================
+//         Name:  LocalDateTimeAsString
+//  Description:  
+// =====================================================================================
+
+std::chrono::system_clock::time_point StringToTimePoint(std::string_view input_format, std::string_view the_date)
+{
+    std::istringstream in{the_date.data()};
+    std::chrono::system_clock::time_point tp;
+    date::from_stream(in, input_format.data(), tp);
+    BOOST_ASSERT_MSG(! in.fail() && ! in.bad(), fmt::format("Unable to parse given date: {}", the_date).c_str());
+    return tp;
+}		// -----  end of method StringToDateYMD  ----- 
+
+// ===  FUNCTION  ======================================================================
+//         Name:  StringToDateYMD
+//  Description:  
+// =====================================================================================
+
+date::year_month_day StringToDateYMD(std::string_view input_format, std::string_view the_date)
+{
+    auto timept = StringToTimePoint(input_format, the_date);
+    date::year_month_day result = floor<date::days>(timept);
+    BOOST_ASSERT_MSG(result.ok(), fmt::format("Invalid date: {}", the_date).c_str());
+    return result;
+}		// -----  end of method StringToDateYMD  ----- 
+
+// ===  FUNCTION  ======================================================================
+//         Name:  LocalDateTimeAsString
+//  Description:  
+// =====================================================================================
+
+std::string LocalDateTimeAsString(std::chrono::system_clock::time_point a_date_time)
 {
     auto t = date::make_zoned(date::current_zone(), a_date_time);
     std::string ts = date::format("%a, %b %d, %Y at %I:%M:%S %p %Z", t);
     return ts;
-}
+}		// -----  end of function LocalDateTimeAsString  -----
+
+// ===  FUNCTION  ======================================================================
+//         Name:  DateTimeAsString
+//  Description:  
+// =====================================================================================
+
+std::string DateTimeAsString(std::chrono::system_clock::time_point a_date_time)
+{
+    std::string ts = date::format("%m-%d-%Y : %H:%M:%S", a_date_time);
+    return ts;
+}		// -----  end of function DateTimeAsString  -----
 
 
 namespace boost
