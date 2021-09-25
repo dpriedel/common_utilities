@@ -29,6 +29,9 @@
 #include <date/date.h>
 #include <fmt/format.h>
 
+#include <range/v3/view/split.hpp>
+#include <range/v3/view/transform.hpp>
+
 // This ctype facet does NOT classify spaces and tabs as whitespace
 // from cppreference example
 
@@ -71,6 +74,26 @@ inline std::vector<T> split_string(std::string_view string_data, char delim)
 	}
     return results;
 }
+
+// here's a ranges based version of the split code above.
+// this advantage of using this version is that it is on-demand 
+// no requirement to split the whole input up front.
+
+template<typename T>
+inline auto rng_split_string(std::string_view string_data, char delim)
+    requires std::is_same_v<T, std::string> || std::is_same_v<T, std::string_view>
+{
+    auto splitter = string_data
+        | ranges::views::split(delim)
+        | ranges::views::transform([](auto &&item_rng)
+            {
+                return T(&*item_rng.begin(), ranges::distance(item_rng));
+            });
+
+    return splitter;
+}
+
+
 
 std::chrono::system_clock::time_point StringToTimePoint(std::string_view input_format, std::string_view the_date);
 
