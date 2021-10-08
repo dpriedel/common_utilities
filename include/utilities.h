@@ -93,6 +93,17 @@ inline auto rng_split_string(std::string_view string_data, char delim)
     return splitter;
 }
 
+// custom fmtlib formatter for date year_month_day
+
+template <> struct fmt::formatter<date::year_month_day>: formatter<std::string> {
+  // parse is inherited from formatter<string_view>.
+  template <typename FormatContext>
+  auto format(date::year_month_day d, FormatContext& ctx) {
+    std::string s_date = date::format("%Y-%m-%d", d);
+    return formatter<std::string>::format(s_date, ctx);
+  }
+};
+
 enum class UpOrDown { e_Down, e_Up };
 
 // some to/from date parsing functions
