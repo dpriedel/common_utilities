@@ -76,7 +76,7 @@ inline std::vector<T> split_string(std::string_view string_data, char delim)
 }
 
 // here's a ranges based version of the split code above.
-// this advantage of using this version is that it is on-demand 
+// this advantage of using this version is that it is lazy -- 
 // no requirement to split the whole input up front.
 
 template<typename T>
@@ -93,7 +93,9 @@ inline auto rng_split_string(std::string_view string_data, char delim)
     return splitter;
 }
 
+enum class UpOrDown { e_Down, e_Up };
 
+// some to/from date parsing functions
 
 std::chrono::system_clock::time_point StringToTimePoint(std::string_view input_format, std::string_view the_date);
 
@@ -105,6 +107,10 @@ std::string LocalDateTimeAsString(std::chrono::system_clock::time_point a_date_t
 
 std::string DateTimeAsString(std::chrono::system_clock::time_point a_date_time);
 
+// this function will generate a pair of dates which spans the specified number of business days (ignoring holidays). 
+// the starting date is included.
+
+std::pair<date::year_month_day, date::year_month_day> ConstructeBusinessDayRange(date::year_month_day start_from, int how_many_business_days, UpOrDown order);
 
 #endif   // ----- #ifndef _UTILITIES_INC_  ----- 
 

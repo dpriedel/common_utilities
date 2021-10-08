@@ -14,6 +14,7 @@
 //
 // =====================================================================================
 
+#include <chrono>
 #include <stdexcept>
 
 #include <date/tz.h>
@@ -21,6 +22,7 @@
 
 #include "utilities.h"
 
+using namespace date::literals;
 
 // ===  FUNCTION  ======================================================================
 //         Name:  LocalDateTimeAsString
@@ -72,6 +74,98 @@ std::string DateTimeAsString(std::chrono::system_clock::time_point a_date_time)
     return ts;
 }		// -----  end of function DateTimeAsString  -----
 
+
+// ===  FUNCTION  ======================================================================
+//         Name:  ConstructeBusinessDayRange
+//  Description:  Generate a start/end pair of dates which included n business days 
+//                ignoring holidays.
+// =====================================================================================
+
+std::pair<date::year_month_day, date::year_month_day> ConstructeBusinessDayRange(date::year_month_day start_from, int how_many_business_days, UpOrDown order)
+{
+    // we need to do some date arithmetic so we can use our basic 'GetTickerData' method. 
+
+    auto days = date::sys_days(start_from);
+    date::weekday business_day{days};
+
+    std::chrono::days one_day{order == UpOrDown::e_Up ? 1 : -1}; 
+    std::chrono::days two_days{order == UpOrDown::e_Up ? 2 : -2}; 
+
+    // if we start on a weekend, move to the closest business day 
+    // based on direction we will move in 
+
+    if (order == UpOrDown::e_Up)
+    {
+        // move forward to the next business day 
+
+        if (business_day == date::Saturday)
+        {
+            days += two_days;
+            business_day += two_days;
+        }
+        else if (business_day == date::Sunday)
+        {
+            days += one_day;
+            business_day += one_day;
+        }
+    }
+    else
+    {
+        // move back to the previous business day 
+
+        if (business_day == date::Saturday)
+        {
+            days += one_day;
+            business_day += one_day;
+        }
+        else if (business_day == date::Sunday)
+        {
+            days += two_days;
+            business_day += two_days;
+        }
+    }
+
+    start_from = date::year_month_day{days};
+
+    for (int i = --how_many_business_days; i > 0; --i)
+    {
+        business_day += one_day;
+        days += one_day;
+
+        if (order == UpOrDown::e_Up)
+        {
+            // move forward to the next business day 
+
+            if (business_day == date::Saturday)
+            {
+                days += two_days;
+                business_day += two_days;
+            }
+            else if (business_day == date::Sunday)
+            {
+                days += one_day;
+                business_day += one_day;
+            }
+        }
+        else
+        {
+            // move back to the previous business day 
+
+            if (business_day == date::Saturday)
+            {
+                days += one_day;
+                business_day += one_day;
+            }
+            else if (business_day == date::Sunday)
+            {
+                days += two_days;
+                business_day += two_days;
+            }
+        }
+    }
+    date::year_month_day end_at = date::year_month_day{days};
+    return {start_from, end_at};
+}		// -----  end of function ConstructeBusinessDayRange  -----
 
 namespace boost
 {
