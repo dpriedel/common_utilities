@@ -106,6 +106,8 @@ template <> struct fmt::formatter<date::year_month_day>: formatter<std::string> 
 
 enum class UpOrDown { e_Down, e_Up };
 
+enum class UseAdjusted { e_Yes, e_No };
+
 // some to/from date parsing functions
 
 std::chrono::system_clock::time_point StringToTimePoint(std::string_view input_format, std::string_view the_date);
