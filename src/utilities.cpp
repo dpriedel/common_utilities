@@ -24,6 +24,18 @@
 
 using namespace date::literals;
 
+
+// ===  FUNCTION  ======================================================================
+//         Name:  TimePointToYMDString
+//  Description:  
+// =====================================================================================
+std::string TimePointToYMDString (std::chrono::system_clock::time_point a_time_point)
+{
+    auto x1 = date::year_month_day{floor<std::chrono::days>(a_time_point)};
+    std::string result = fmt::format("{}", x1);
+    return result;
+}		// -----  end of function TimePointToYMDString  -----
+
 // ===  FUNCTION  ======================================================================
 //         Name:  LocalDateTimeAsString
 //  Description:  

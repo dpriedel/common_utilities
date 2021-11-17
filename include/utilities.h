@@ -110,6 +110,8 @@ enum class UseAdjusted { e_Yes, e_No };
 
 // some to/from date parsing functions
 
+std::string TimePointToYMDString(std::chrono::system_clock::time_point a_time_point);
+
 std::chrono::system_clock::time_point StringToTimePoint(std::string_view input_format, std::string_view the_date);
 
 date::year_month_day StringToDateYMD(std::string_view input_format, std::string_view the_date);
