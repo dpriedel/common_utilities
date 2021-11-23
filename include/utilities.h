@@ -17,6 +17,7 @@
 #ifndef  _UTILITIES_INC_
 #define  _UTILITIES_INC_
 
+#include <filesystem>
 #include <chrono>
 #include <locale>
 #include <string>
@@ -93,6 +94,17 @@ inline auto rng_split_string(std::string_view string_data, char delim)
     return splitter;
 }
 
+// custom fmtlib formatter for filesytem paths
+
+template <> struct fmt::formatter<std::filesystem::path>: formatter<std::string> {
+  // parse is inherited from formatter<string_view>.
+  template <typename FormatContext>
+  auto format(const std::filesystem::path& p, FormatContext& ctx) {
+    std::string f_name = p.string();
+    return formatter<std::string>::format(f_name, ctx);
+  }
+};
+
 // custom fmtlib formatter for date year_month_day
 
 template <> struct fmt::formatter<date::year_month_day>: formatter<std::string> {
@@ -116,6 +128,8 @@ std::chrono::system_clock::time_point StringToTimePoint(std::string_view input_f
 
 date::year_month_day StringToDateYMD(std::string_view input_format, std::string_view the_date);
 
+// utility to convert a date::year_month_day to a string
+// using Howard Hinnant's date library
 // this function includes the time zone
 
 std::string LocalDateTimeAsString(std::chrono::system_clock::time_point a_date_time);

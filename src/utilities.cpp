@@ -37,7 +37,7 @@ std::string TimePointToYMDString (std::chrono::system_clock::time_point a_time_p
 }		// -----  end of function TimePointToYMDString  -----
 
 // ===  FUNCTION  ======================================================================
-//         Name:  LocalDateTimeAsString
+//         Name:  StringToTimePoint
 //  Description:  
 // =====================================================================================
 
