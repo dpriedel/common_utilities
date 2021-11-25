@@ -17,8 +17,8 @@
 #ifndef  _UTILITIES_INC_
 #define  _UTILITIES_INC_
 
-#include <filesystem>
 #include <chrono>
+#include <filesystem>
 #include <locale>
 #include <string>
 #include <string_view>
@@ -32,6 +32,8 @@
 
 #include <range/v3/view/split.hpp>
 #include <range/v3/view/transform.hpp>
+
+namespace fs = std::filesystem;
 
 // This ctype facet does NOT classify spaces and tabs as whitespace
 // from cppreference example
@@ -140,6 +142,8 @@ std::string DateTimeAsString(std::chrono::system_clock::time_point a_date_time);
 // the starting date is included.
 
 std::pair<date::year_month_day, date::year_month_day> ConstructeBusinessDayRange(date::year_month_day start_from, int how_many_business_days, UpOrDown order);
+
+std::string LoadDataFileForUse (const fs::path& file_name);
 
 #endif   // ----- #ifndef _UTILITIES_INC_  ----- 
 

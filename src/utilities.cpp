@@ -15,6 +15,7 @@
 // =====================================================================================
 
 #include <chrono>
+#include <fstream>
 #include <stdexcept>
 
 #include <date/tz.h>
@@ -178,6 +179,25 @@ std::pair<date::year_month_day, date::year_month_day> ConstructeBusinessDayRange
     date::year_month_day end_at = date::year_month_day{days};
     return {start_from, end_at};
 }		// -----  end of function ConstructeBusinessDayRange  -----
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  LoadDataFileForUse
+ *  Description:  
+ * =====================================================================================
+ */
+std::string LoadDataFileForUse (const fs::path& file_name)
+{
+    std::string file_content;     // make room for trailing null
+    file_content.reserve(fs::file_size(file_name) + 1);
+    std::ifstream input_file{file_name, std::ios_base::in | std::ios_base::binary};
+//    input_file.read(&file_content[0], file_content.size());
+	file_content.assign(std::istreambuf_iterator<char>(input_file), std::istreambuf_iterator<char>());
+    input_file.close();
+    
+    file_content += '\0';
+    return file_content;
+}		/* -----  end of function LoadDataFileForUse  ----- */
 
 namespace boost
 {
