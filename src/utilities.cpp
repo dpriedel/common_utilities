@@ -191,6 +191,7 @@ std::string LoadDataFileForUse (const fs::path& file_name)
     std::string file_content;     // make room for trailing null
     file_content.reserve(fs::file_size(file_name) + 1);
     std::ifstream input_file{file_name, std::ios_base::in | std::ios_base::binary};
+    BOOST_ASSERT_MSG(input_file.is_open(), fmt::format("Can't open data file: {}.", file_name).c_str());
 //    input_file.read(&file_content[0], file_content.size());
 	file_content.assign(std::istreambuf_iterator<char>(input_file), std::istreambuf_iterator<char>());
     input_file.close();
