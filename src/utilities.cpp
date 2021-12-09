@@ -196,7 +196,6 @@ std::string LoadDataFileForUse (const fs::path& file_name)
 	file_content.assign(std::istreambuf_iterator<char>(input_file), std::istreambuf_iterator<char>());
     input_file.close();
     
-    file_content += '\0';
     return file_content;
 }		/* -----  end of function LoadDataFileForUse  ----- */
 

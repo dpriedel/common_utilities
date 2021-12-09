@@ -61,7 +61,7 @@ inline std::vector<T> split_string(std::string_view string_data, char delim)
     requires std::is_same_v<T, std::string> || std::is_same_v<T, std::string_view>
 {
     std::vector<T> results;
-	for (auto it = 0; it != T::npos; ++it)
+	for (auto it = 0; it < string_data.size(); ++it)
 	{
 		auto pos = string_data.find(delim, it);
         if (pos != T::npos)
