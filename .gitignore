@@ -2,6 +2,11 @@
 tags
 include/tags
 src/tags
+calendar_algorithms/
 
+# got these online -- not my code
+
+include/calfaq.h
+src/calfaq.c
 
 .cache
