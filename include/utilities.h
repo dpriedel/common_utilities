@@ -143,7 +143,18 @@ std::string DateTimeAsString(std::chrono::system_clock::time_point a_date_time);
 
 std::pair<date::year_month_day, date::year_month_day> ConstructeBusinessDayRange(date::year_month_day start_from, int how_many_business_days, UpOrDown order);
 
+// a (hopefully) efficient to read an entire file into a string.  Does a binary read. 
+
 std::string LoadDataFileForUse (const fs::path& file_name);
+
+// some more date related functions related to our point and figure project 
+//
+// Generate a list of market holidays for the given year 
+
+using US_MarketHoliday = std::pair<const std::string, const date::year_month_day>;
+using US_MarketHolidays = std::vector<US_MarketHoliday>;
+
+US_MarketHolidays MakeHolidayList(date::year which_year);
 
 #endif   // ----- #ifndef _UTILITIES_INC_  ----- 
 
