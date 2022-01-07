@@ -34,7 +34,10 @@
 //#include <range/v3/view/transform.hpp>
 
 #include "utilities.h"
-#include "calfaq.h"
+extern "C"
+{
+    #include "calfaq.h"
+}
 
 using namespace date::literals;
 
@@ -236,12 +239,11 @@ US_MarketHolidays MakeHolidayList (date::year which_year)
     using ymwd = date::year_month_weekday;
     using ymwdl = date::year_month_weekday_last;
 
-    // here are the rules for constructing each holiday. 
-    // Good Friday is also a holiday but the rules for constructing those 
-    // are far more complicated so I just going to use a table.
-    // If the requested year is beyond the table contents, an exception will be thrown.
+    struct Easter {};       // use this to trigger computation needed to find Good Friday.
 
-    using HolidayRule = std::pair<const std::string, std::variant<const md, const mwd, const mwdl>>;
+    // here are the rules for constructing each holiday. 
+
+    using HolidayRule = std::pair<const std::string, std::variant<const md, const mwd, const mwdl, Easter>>;
     using HolidayRuleList = std::vector<HolidayRule>;
 
     // with gcc 12, the below will become 'constexpr'
@@ -249,6 +251,7 @@ US_MarketHolidays MakeHolidayList (date::year which_year)
     static const HolidayRule NewYears = std::make_pair("New Years", md{date::January, 1_d});
     static const HolidayRule MLKDay = std::make_pair("Martin Luther King Day", mwd{date::January, date::weekday_indexed{date::Monday, 3}});
     static const HolidayRule WashingtonBday = std::make_pair("Presidents Day", mwd{date::February, date::weekday_indexed{date::Monday, 3}});
+    static const HolidayRule GoodFriday = std::make_pair("Good Frday", Easter{});
     static const HolidayRule MemorialDay = std::make_pair("Memorial Day", mwdl{date::May, date::Monday[last]});
     static const HolidayRule Juneteenth = std::make_pair("Juneteenth", md{date::June, 19_d});
     static const HolidayRule IndependenceDay = std::make_pair("Independence Day", md{date::July, 4_d});
@@ -256,14 +259,16 @@ US_MarketHolidays MakeHolidayList (date::year which_year)
     static const HolidayRule Thanksgiving = std::make_pair("Thanksgiving Day", mwd{date::November, date::weekday_indexed{date::Thursday, 4}});
     static const HolidayRule Christmas = std::make_pair("Christmas Day", md{date::December, 25_d});
 
-    static const HolidayRuleList holiday_rules = {NewYears, MLKDay, WashingtonBday, MemorialDay, Juneteenth,
+    static const HolidayRuleList holiday_rules = {NewYears, MLKDay, WashingtonBday, GoodFriday, MemorialDay, Juneteenth,
         IndependenceDay, LaborDay, Thanksgiving, Christmas};
 
-    static const std::vector<ymd> GoodFridays = {{2022_y, date::April, 15_d}, {2023_y, date::April, 7_d}, {2024_y, date::March, 29_d},
-        {2025_y, date::April, 18_d}, {2026_y, date::April, 3_d}, {2027_y, date::March, 26_d}, {2028_y, date::April, 14_d},
-        {2029_y, date::March, 30_d}, {2030_y, date::April, 19_d}};
+//    static const std::vector<ymd> GoodFridays = {{2022_y, date::April, 15_d}, {2023_y, date::April, 7_d}, {2024_y, date::March, 29_d},
+//        {2025_y, date::April, 18_d}, {2026_y, date::April, 3_d}, {2027_y, date::March, 26_d}, {2028_y, date::April, 14_d},
+//        {2029_y, date::March, 30_d}, {2030_y, date::April, 19_d}};
 
     US_MarketHolidays h_days;
+
+    // NOTE: for Good Friday, first calculate Easter then back up 2 days.
 
     for(const auto& x : holiday_rules)
     {
@@ -274,14 +279,21 @@ US_MarketHolidays MakeHolidayList (date::year which_year)
             {
                 [which_year, &h_days, &h_name](const md& h_rule){ h_days.emplace_back(US_MarketHoliday{h_name, ymd{which_year, h_rule.month(), h_rule.day()}}); },
                 [which_year, &h_days, &h_name](const mwd& h_rule){ ymwd x = {which_year, h_rule.month(), h_rule.weekday_indexed()}; h_days.emplace_back(US_MarketHoliday{h_name, ymd{x}}); },
-                [which_year, &h_days, &h_name](const mwdl& h_rule){ ymwdl x = {which_year, h_rule.month(), h_rule.weekday_last()}; h_days.emplace_back(US_MarketHoliday{h_name, ymd{x}}); }
+                [which_year, &h_days, &h_name](const mwdl& h_rule){ ymwdl x = {which_year, h_rule.month(), h_rule.weekday_last()}; h_days.emplace_back(US_MarketHoliday{h_name, ymd{x}}); },
+                [which_year, &h_days, &h_name](const Easter& h_rule)
+                    { 
+                        int month, day;
+                        easter(GREGORIAN, which_year.operator int(), &month, &day); 
+                        ymd easter_sunday{which_year, date::month(month), date::day(day)};
+                        date::sys_days good_friday = date::sys_days(easter_sunday) - date::days{2};
+                        h_days.emplace_back(US_MarketHoliday{h_name, ymd{good_friday}});
+                    }
             }, h_rule);
     }
 
     // last thing, add in Good Friday.
     return h_days;
 }		// -----  end of function MakeHolidayList  -----
-
 
 namespace boost
 {
