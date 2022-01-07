@@ -149,7 +149,9 @@ std::string LoadDataFileForUse (const fs::path& file_name);
 
 // some more date related functions related to our point and figure project 
 //
-// Generate a list of market holidays for the given year 
+// Generate a list of US market holidays for the given year 
+// NOTE: List will contain day holidays are observed by market, not necessarily
+// the actual date of the holiday
 
 using US_MarketHoliday = std::pair<const std::string, const date::year_month_day>;
 using US_MarketHolidays = std::vector<US_MarketHoliday>;

@@ -239,21 +239,23 @@ US_MarketHolidays MakeHolidayList (date::year which_year)
     using ymwd = date::year_month_weekday;
     using ymwdl = date::year_month_weekday_last;
 
-    struct Easter {};       // use this to trigger computation needed to find Good Friday.
+    struct NewYearsDayRule {};     // New Years day does not fall back to previous year.
+    struct EasterRule {};       // use this to trigger computation needed to find Good Friday.
+    struct JuneteenthRule {};       // use this to trigger computation needed to find Good Friday.
 
     // here are the rules for constructing each holiday. 
 
-    using HolidayRule = std::pair<const std::string, std::variant<const md, const mwd, const mwdl, Easter>>;
+    using HolidayRule = std::pair<const std::string, std::variant<const md, const mwd, const mwdl, NewYearsDayRule, EasterRule, JuneteenthRule>>;
     using HolidayRuleList = std::vector<HolidayRule>;
 
     // with gcc 12, the below will become 'constexpr'
 
-    static const HolidayRule NewYears = std::make_pair("New Years", md{date::January, 1_d});
+    static const HolidayRule NewYears = std::make_pair("New Years", NewYearsDayRule{});
     static const HolidayRule MLKDay = std::make_pair("Martin Luther King Day", mwd{date::January, date::weekday_indexed{date::Monday, 3}});
     static const HolidayRule WashingtonBday = std::make_pair("Presidents Day", mwd{date::February, date::weekday_indexed{date::Monday, 3}});
-    static const HolidayRule GoodFriday = std::make_pair("Good Frday", Easter{});
+    static const HolidayRule GoodFriday = std::make_pair("Good Frday", EasterRule{});
     static const HolidayRule MemorialDay = std::make_pair("Memorial Day", mwdl{date::May, date::Monday[last]});
-    static const HolidayRule Juneteenth = std::make_pair("Juneteenth", md{date::June, 19_d});
+    static const HolidayRule Juneteenth = std::make_pair("Juneteenth", JuneteenthRule{});
     static const HolidayRule IndependenceDay = std::make_pair("Independence Day", md{date::July, 4_d});
     static const HolidayRule LaborDay = std::make_pair("Labor Day", mwd{date::September, date::weekday_indexed{date::Monday, 1}});
     static const HolidayRule Thanksgiving = std::make_pair("Thanksgiving Day", mwd{date::November, date::weekday_indexed{date::Thursday, 4}});
@@ -277,16 +279,68 @@ US_MarketHolidays MakeHolidayList (date::year which_year)
 
             std::visit(overloaded 
             {
-                [which_year, &h_days, &h_name](const md& h_rule){ h_days.emplace_back(US_MarketHoliday{h_name, ymd{which_year, h_rule.month(), h_rule.day()}}); },
+                [which_year, &h_days, &h_name](const md& h_rule)
+                    {
+                        // these holidays can be any day of the week so adjust observed day 
+                        // for Saturdays and Sundays 
+
+                        date::sys_days hday = ymd{which_year, h_rule.month(), h_rule.day()};
+                        ymwd hwday{hday};
+                        const date::weekday which_day = hwday.weekday();
+                        if (which_day == date::Sunday)
+                        {
+                            hday += date::days{1};
+                        }
+                        else if (which_day == date::Saturday)
+                        {
+                            hday -= date::days{1};
+                        }
+                        h_days.emplace_back(US_MarketHoliday{h_name, ymd{hday}});
+                    },
                 [which_year, &h_days, &h_name](const mwd& h_rule){ ymwd x = {which_year, h_rule.month(), h_rule.weekday_indexed()}; h_days.emplace_back(US_MarketHoliday{h_name, ymd{x}}); },
                 [which_year, &h_days, &h_name](const mwdl& h_rule){ ymwdl x = {which_year, h_rule.month(), h_rule.weekday_last()}; h_days.emplace_back(US_MarketHoliday{h_name, ymd{x}}); },
-                [which_year, &h_days, &h_name](const Easter& h_rule)
+                [which_year, &h_days, &h_name](const NewYearsDayRule& h_rule)
+                    { 
+                        // If New Years falls on a Saturday, then no holiday observed.
+                        // If on a Sunday, then Monday
+                        date::sys_days newyears = ymd{which_year, date::month{1}, date::day{1}};
+                        ymwd newyearsday{newyears};
+                        const date::weekday which_day = newyearsday.weekday();
+                        if (which_day == date::Sunday)
+                        {
+                            newyears += date::days{1};
+                        }
+                        if (which_day != date::Saturday)
+                        {
+                            h_days.emplace_back(US_MarketHoliday{h_name, ymd{newyears}});
+                        }
+                    },
+                [which_year, &h_days, &h_name](const EasterRule& h_rule)
                     { 
                         int month, day;
                         easter(GREGORIAN, which_year.operator int(), &month, &day); 
                         ymd easter_sunday{which_year, date::month(month), date::day(day)};
                         date::sys_days good_friday = date::sys_days(easter_sunday) - date::days{2};
                         h_days.emplace_back(US_MarketHoliday{h_name, ymd{good_friday}});
+                    },
+                [which_year, &h_days, &h_name](const JuneteenthRule& h_rule)
+                    { 
+                        // first use of this holiday is 2022
+                        if (which_year >= 2022_y)
+                        {
+                            date::sys_days hday = ymd{which_year, date::month(6), date::day(19)};
+                            ymwd hwday{hday};
+                            const date::weekday which_day = hwday.weekday();
+                            if (which_day == date::Sunday)
+                            {
+                                hday += date::days{1};
+                            }
+                            else if (which_day == date::Saturday)
+                            {
+                                hday -= date::days{1};
+                            }
+                            h_days.emplace_back(US_MarketHoliday{h_name, ymd{hday}});
+                        }
                     }
             }, h_rule);
     }
