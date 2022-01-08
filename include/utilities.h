@@ -138,11 +138,6 @@ std::string LocalDateTimeAsString(std::chrono::system_clock::time_point a_date_t
 
 std::string DateTimeAsString(std::chrono::system_clock::time_point a_date_time);
 
-// this function will generate a pair of dates which spans the specified number of business days (ignoring holidays). 
-// the starting date is included.
-
-std::pair<date::year_month_day, date::year_month_day> ConstructeBusinessDayRange(date::year_month_day start_from, int how_many_business_days, UpOrDown order);
-
 // a (hopefully) efficient to read an entire file into a string.  Does a binary read. 
 
 std::string LoadDataFileForUse (const fs::path& file_name);
@@ -157,6 +152,11 @@ using US_MarketHoliday = std::pair<const std::string, const date::year_month_day
 using US_MarketHolidays = std::vector<US_MarketHoliday>;
 
 US_MarketHolidays MakeHolidayList(date::year which_year);
+
+// this function will generate a pair of dates which spans the specified number of business days (ignoring holidays). 
+// the starting date is included.
+
+std::pair<date::year_month_day, date::year_month_day> ConstructeBusinessDayRange(date::year_month_day start_from, int how_many_business_days, UpOrDown order, const US_MarketHolidays* holidays=nullptr);
 
 #endif   // ----- #ifndef _UTILITIES_INC_  ----- 
 

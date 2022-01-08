@@ -30,6 +30,8 @@
 #include <fmt/format.h>
 
 #include <range/v3/algorithm/for_each.hpp>
+#include <range/v3/algorithm/find.hpp>
+
 //#include <range/v3/range/conversion.hpp>
 //#include <range/v3/view/transform.hpp>
 
@@ -107,93 +109,40 @@ std::string DateTimeAsString(std::chrono::system_clock::time_point a_date_time)
 // ===  FUNCTION  ======================================================================
 //         Name:  ConstructeBusinessDayRange
 //  Description:  Generate a start/end pair of dates which included n business days 
-//                ignoring holidays.
+//                skipping holidays.
 // =====================================================================================
 
-std::pair<date::year_month_day, date::year_month_day> ConstructeBusinessDayRange(date::year_month_day start_from, int how_many_business_days, UpOrDown order)
+std::pair<date::year_month_day, date::year_month_day> ConstructeBusinessDayRange(date::year_month_day start_from, int how_many_business_days, UpOrDown order, const US_MarketHolidays* holidays)
 {
     // we need to do some date arithmetic so we can use our basic 'GetTickerData' method. 
 
     auto days = date::sys_days(start_from);
-    date::weekday business_day{days};
 
-    std::chrono::days one_day{order == UpOrDown::e_Up ? 1 : -1}; 
-    std::chrono::days two_days{order == UpOrDown::e_Up ? 2 : -2}; 
+    const std::chrono::days day_increment{order == UpOrDown::e_Up ? 1 : -1}; 
 
-    // if we start on a weekend, move to the closest business day 
-    // based on direction we will move in 
+    std::vector<date::year_month_day> business_days;
 
-    if (order == UpOrDown::e_Up)
+    auto IsHoliday = [holidays](const date::year_month_day& a_day)
+        {
+            if (holidays == nullptr) return false;
+            return ranges::find(*holidays, a_day, [](const auto& e) { return e.second; }) != holidays->end();
+        };
+
+    while (business_days.size() < how_many_business_days)
     {
-        // move forward to the next business day 
-
-        if (business_day == date::Saturday)
+        auto b_day = date::weekday{days};
+        while (b_day == date::Saturday || b_day == date::Sunday || IsHoliday(days))
         {
-            days += two_days;
-            business_day += two_days;
+            days += day_increment;
+            b_day = date::weekday{days};
         }
-        else if (business_day == date::Sunday)
-        {
-            days += one_day;
-            business_day += one_day;
-        }
-    }
-    else
-    {
-        // move back to the previous business day 
-
-        if (business_day == date::Saturday)
-        {
-            days += one_day;
-            business_day += one_day;
-        }
-        else if (business_day == date::Sunday)
-        {
-            days += two_days;
-            business_day += two_days;
-        }
+        business_days.push_back(days);
+        days += day_increment;
     }
 
-    start_from = date::year_month_day{days};
-
-    for (int i = --how_many_business_days; i > 0; --i)
-    {
-        business_day += one_day;
-        days += one_day;
-
-        if (order == UpOrDown::e_Up)
-        {
-            // move forward to the next business day 
-
-            if (business_day == date::Saturday)
-            {
-                days += two_days;
-                business_day += two_days;
-            }
-            else if (business_day == date::Sunday)
-            {
-                days += one_day;
-                business_day += one_day;
-            }
-        }
-        else
-        {
-            // move back to the previous business day 
-
-            if (business_day == date::Saturday)
-            {
-                days += one_day;
-                business_day += one_day;
-            }
-            else if (business_day == date::Sunday)
-            {
-                days += two_days;
-                business_day += two_days;
-            }
-        }
-    }
-    date::year_month_day end_at = date::year_month_day{days};
-    return {start_from, end_at};
+//    ranges::for_each(business_days, [](const auto& e) { std::cout << e << '\n'; });
+//    std::cout << "how many: " << business_days.size() << '\n';
+    return {business_days.front(), business_days.back()};
 }		// -----  end of function ConstructeBusinessDayRange  -----
 
 /* 
@@ -298,7 +247,9 @@ US_MarketHolidays MakeHolidayList (date::year which_year)
                         h_days.emplace_back(US_MarketHoliday{h_name, ymd{hday}});
                     },
                 [which_year, &h_days, &h_name](const mwd& h_rule){ ymwd x = {which_year, h_rule.month(), h_rule.weekday_indexed()}; h_days.emplace_back(US_MarketHoliday{h_name, ymd{x}}); },
+
                 [which_year, &h_days, &h_name](const mwdl& h_rule){ ymwdl x = {which_year, h_rule.month(), h_rule.weekday_last()}; h_days.emplace_back(US_MarketHoliday{h_name, ymd{x}}); },
+                
                 [which_year, &h_days, &h_name](const NewYearsDayRule& h_rule)
                     { 
                         // If New Years falls on a Saturday, then no holiday observed.
