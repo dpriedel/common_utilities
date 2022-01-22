@@ -21,6 +21,7 @@
 #include <filesystem>
 #include <locale>
 #include <string>
+#include <sstream>
 #include <string_view>
 #include <type_traits>
 #include <vector>
@@ -118,6 +119,19 @@ template <> struct fmt::formatter<date::year_month_day>: formatter<std::string> 
   }
 };
 
+// custom fmtlib formatter for date time_of_day
+
+template <> struct fmt::formatter<date::local_seconds>: formatter<std::string> {
+  // parse is inherited from formatter<string_view>.
+  template <typename FormatContext>
+  auto format(date::local_seconds t, FormatContext& ctx) {
+    std::string s_time = date::format("%I:%M:%S", t);
+//      std::ostringstream ss;
+//      ss << t;
+    return formatter<std::string>::format(s_time, ctx);
+  }
+};
+
 enum class UpOrDown { e_Down, e_Up };
 
 enum class UseAdjusted { e_Yes, e_No };
@@ -125,6 +139,8 @@ enum class UseAdjusted { e_Yes, e_No };
 // some to/from date parsing functions
 
 std::string TimePointToYMDString(std::chrono::system_clock::time_point a_time_point);
+
+std::string TimePointToHMSString(std::chrono::system_clock::time_point a_time_point);
 
 std::chrono::system_clock::time_point StringToTimePoint(std::string_view input_format, std::string_view the_date);
 
@@ -153,8 +169,14 @@ using US_MarketHolidays = std::vector<US_MarketHoliday>;
 
 US_MarketHolidays MakeHolidayList(date::year which_year);
 
-// this function will generate a pair of dates which spans the specified number of business days (ignoring holidays). 
-// the starting date is included.
+// this function will generate a list of dates which spans the specified number of business days, optionally
+// taking holidays into account.  the starting date is included.
+// This is useful for generating test data.
+
+std::vector<date::year_month_day> ConstructeBusinessDayList(date::year_month_day start_from, int how_many_business_days, UpOrDown order, const US_MarketHolidays* holidays=nullptr);
+
+// this function will generate a pair of dates which spans the specified number of business days, optionally
+// taking holidays into account.  the starting date is included.
 
 std::pair<date::year_month_day, date::year_month_day> ConstructeBusinessDayRange(date::year_month_day start_from, int how_many_business_days, UpOrDown order, const US_MarketHolidays* holidays=nullptr);
 

@@ -56,6 +56,18 @@ std::string TimePointToYMDString (std::chrono::system_clock::time_point a_time_p
 }		// -----  end of function TimePointToYMDString  -----
 
 // ===  FUNCTION  ======================================================================
+//         Name:  TimePointToHMSString
+//  Description:  
+// =====================================================================================
+
+std::string TimePointToHMSString(std::chrono::system_clock::time_point a_time_point)
+{
+    auto t = date::make_zoned(date::current_zone(), a_time_point);
+    std::string result = date::format("%I:%M:%S", t);
+    return result;
+}		// -----  end of function TimePointToHMSString  -----
+
+// ===  FUNCTION  ======================================================================
 //         Name:  StringToTimePoint
 //  Description:  
 // =====================================================================================
@@ -105,14 +117,13 @@ std::string DateTimeAsString(std::chrono::system_clock::time_point a_date_time)
     return ts;
 }		// -----  end of function DateTimeAsString  -----
 
-
 // ===  FUNCTION  ======================================================================
-//         Name:  ConstructeBusinessDayRange
+//         Name:  ConstructeBusinessDayList
 //  Description:  Generate a start/end pair of dates which included n business days 
 //                skipping holidays.
 // =====================================================================================
 
-std::pair<date::year_month_day, date::year_month_day> ConstructeBusinessDayRange(date::year_month_day start_from, int how_many_business_days, UpOrDown order, const US_MarketHolidays* holidays)
+std::vector<date::year_month_day> ConstructeBusinessDayList(date::year_month_day start_from, int how_many_business_days, UpOrDown order, const US_MarketHolidays* holidays)
 {
     // we need to do some date arithmetic so we can use our basic 'GetTickerData' method. 
 
@@ -142,6 +153,25 @@ std::pair<date::year_month_day, date::year_month_day> ConstructeBusinessDayRange
 
 //    ranges::for_each(business_days, [](const auto& e) { std::cout << e << '\n'; });
 //    std::cout << "how many: " << business_days.size() << '\n';
+    return business_days;
+}		// -----  end of function ConstructeBusinessDayList  -----
+
+// ===  FUNCTION  ======================================================================
+//         Name:  ConstructeBusinessDayRange
+//  Description:  Generate a start/end pair of dates which included n business days 
+//                skipping holidays.
+// =====================================================================================
+
+std::pair<date::year_month_day, date::year_month_day> ConstructeBusinessDayRange(date::year_month_day start_from, int how_many_business_days, UpOrDown order, const US_MarketHolidays* holidays)
+{
+    // we need to do some date arithmetic so we can use our basic 'GetTickerData' method. 
+
+    auto days = date::sys_days(start_from);
+
+    const std::chrono::days day_increment{order == UpOrDown::e_Up ? 1 : -1}; 
+
+    auto business_days = ConstructeBusinessDayList(start_from, how_many_business_days, order, holidays);
+
     return {business_days.front(), business_days.back()};
 }		// -----  end of function ConstructeBusinessDayRange  -----
 
