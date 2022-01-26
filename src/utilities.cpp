@@ -64,6 +64,10 @@ std::string TimePointToHMSString(std::chrono::system_clock::time_point a_time_po
 {
     auto t = date::make_zoned(date::current_zone(), a_time_point);
     std::string result = date::format("%I:%M:%S", t);
+    if (result.ends_with(".000000000"))
+    {
+        result.resize(result.size() - 10);
+    }
     return result;
 }		// -----  end of function TimePointToHMSString  -----
 
@@ -103,6 +107,10 @@ std::string LocalDateTimeAsString(std::chrono::system_clock::time_point a_date_t
 {
     auto t = date::make_zoned(date::current_zone(), a_date_time);
     std::string ts = date::format("%a, %b %d, %Y at %I:%M:%S %p %Z", t);
+    if (auto pos = ts.find(".000000000"); pos != std::string::npos)
+    {
+        ts.erase(pos, pos + 10);
+    }
     return ts;
 }		// -----  end of function LocalDateTimeAsString  -----
 
