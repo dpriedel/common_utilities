@@ -29,6 +29,8 @@
 #include <boost/assert.hpp>
 
 #include <date/date.h>
+#include <date/tz.h>
+
 #include <fmt/format.h>
 
 #include <range/v3/view/split.hpp>
@@ -132,15 +134,22 @@ template <> struct fmt::formatter<date::local_seconds>: formatter<std::string> {
   }
 };
 
+// a (hopefully) efficient way to read an entire file into a string.  Does a binary read. 
+
+std::string LoadDataFileForUse (const fs::path& file_name);
+
 enum class UpOrDown { e_Down, e_Up };
 
 enum class UseAdjusted { e_Yes, e_No };
+
+// some basic time utilities 
+
 
 // some to/from date parsing functions
 
 std::string TimePointToYMDString(std::chrono::system_clock::time_point a_time_point);
 
-std::string TimePointToHMSString(std::chrono::system_clock::time_point a_time_point);
+std::string TimePointToLocalHMSString(std::chrono::system_clock::time_point a_time_point);
 
 std::chrono::system_clock::time_point StringToTimePoint(std::string_view input_format, std::string_view the_date);
 
@@ -154,9 +163,14 @@ std::string LocalDateTimeAsString(std::chrono::system_clock::time_point a_date_t
 
 std::string DateTimeAsString(std::chrono::system_clock::time_point a_date_time);
 
-// a (hopefully) efficient to read an entire file into a string.  Does a binary read. 
+// some time values  for accessing streaming market data.
 
-std::string LoadDataFileForUse (const fs::path& file_name);
+using US_MarketTime = date::zoned_time<std::chrono::seconds>;
+
+US_MarketTime GetUS_MarketOpen();
+US_MarketTime GetUS_MarketClose();
+
+US_MarketTime CurrentLocalZonedTime();
 
 // some more date related functions related to our point and figure project 
 //

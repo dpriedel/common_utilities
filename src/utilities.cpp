@@ -26,6 +26,9 @@
 #include <date/date.h>
 #include <date/tz.h>
 
+using namespace date::literals;
+using namespace std::chrono_literals;
+
 #include <fmt/chrono.h>
 #include <fmt/format.h>
 
@@ -41,8 +44,36 @@ extern "C"
     #include "calfaq.h"
 }
 
-using namespace date::literals;
+// ===  FUNCTION  ======================================================================
+//         Name:  GetUS_MarketOpen
+//  Description:  
+// =====================================================================================
+US_MarketTime GetUS_MarketOpen ()
+{
+    date::year_month_day today{floor<std::chrono::days>(std::chrono::system_clock::now())};
+    return date::zoned_time("America/New_York", date::local_days{today} + 9h + 30min + 0s);
+}		// -----  end of function GetUS_MarketOpen  -----
 
+
+// ===  FUNCTION  ======================================================================
+//         Name:  GetUS_MarketClose
+//  Description:  
+// =====================================================================================
+US_MarketTime GetUS_MarketClose ( )
+{
+    date::year_month_day today{floor<std::chrono::days>(std::chrono::system_clock::now())};
+    return date::zoned_time{"America/New_York", date::local_days{today} + 16h + 0min + 0s};
+}		// -----  end of function GetUS_MarketClose  -----
+
+// ===  FUNCTION  ======================================================================
+//         Name:  CurrentLocalZonedTime
+//  Description:  
+// =====================================================================================
+
+US_MarketTime CurrentLocalZonedTime()
+{
+    return date::zoned_time{date::current_zone(), floor<std::chrono::seconds>(std::chrono::system_clock::now())};
+}		// -----  end of function CurrentLocalTime  -----
 
 // ===  FUNCTION  ======================================================================
 //         Name:  TimePointToYMDString
@@ -60,16 +91,16 @@ std::string TimePointToYMDString (std::chrono::system_clock::time_point a_time_p
 //  Description:  
 // =====================================================================================
 
-std::string TimePointToHMSString(std::chrono::system_clock::time_point a_time_point)
+std::string TimePointToLocalHMSString(std::chrono::system_clock::time_point a_time_point)
 {
-    auto t = date::make_zoned(date::current_zone(), a_time_point);
+    auto t = date::zoned_time(date::current_zone(), floor<std::chrono::seconds>(a_time_point));
     std::string result = date::format("%I:%M:%S", t);
-    if (result.ends_with(".000000000"))
-    {
-        result.resize(result.size() - 10);
-    }
+//    if (result.ends_with(".000000000"))
+//    {
+//        result.resize(result.size() - 10);
+//    }
     return result;
-}		// -----  end of function TimePointToHMSString  -----
+}		// -----  end of function TimePointToLocalHMSString  -----
 
 // ===  FUNCTION  ======================================================================
 //         Name:  StringToTimePoint
@@ -105,12 +136,12 @@ date::year_month_day StringToDateYMD(std::string_view input_format, std::string_
 
 std::string LocalDateTimeAsString(std::chrono::system_clock::time_point a_date_time)
 {
-    auto t = date::make_zoned(date::current_zone(), a_date_time);
+    auto t = date::zoned_time(date::current_zone(), floor<std::chrono::seconds>(a_date_time));
     std::string ts = date::format("%a, %b %d, %Y at %I:%M:%S %p %Z", t);
-    if (auto pos = ts.find(".000000000"); pos != std::string::npos)
-    {
-        ts.erase(pos, pos + 10);
-    }
+//    if (auto pos = ts.find(".000000000"); pos != std::string::npos)
+//    {
+//        ts.erase(pos, pos + 10);
+//    }
     return ts;
 }		// -----  end of function LocalDateTimeAsString  -----
 
