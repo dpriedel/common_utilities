@@ -167,10 +167,14 @@ std::string DateTimeAsString(std::chrono::system_clock::time_point a_date_time);
 
 using US_MarketTime = date::zoned_time<std::chrono::seconds>;
 
-US_MarketTime GetUS_MarketOpen();
-US_MarketTime GetUS_MarketClose();
+US_MarketTime GetUS_MarketOpenTime(const date::year_month_day& a_day);
+US_MarketTime GetUS_MarketCloseTime(const date::year_month_day& a_day);
 
 US_MarketTime CurrentLocalZonedTime();
+
+enum class US_MarketStatus { e_NotOpenYet, e_ClosedForDay, e_OpenForTrading, e_NonTradingDay};
+
+US_MarketStatus GetUS_MarketStatus(std::string_view local_time_zone_name, date::sys_seconds a_time);
 
 // some more date related functions related to our point and figure project 
 //
@@ -183,6 +187,10 @@ using US_MarketHolidays = std::vector<US_MarketHoliday>;
 
 US_MarketHolidays MakeHolidayList(date::year which_year);
 
+// see if the US Stock market is open on the given day.
+
+bool IsUS_MarketOpen(const date::year_month_day& a_day);
+
 // this function will generate a list of dates which spans the specified number of business days, optionally
 // taking holidays into account.  the starting date is included.
 // This is useful for generating test data.
@@ -193,6 +201,32 @@ std::vector<date::year_month_day> ConstructeBusinessDayList(date::year_month_day
 // taking holidays into account.  the starting date is included.
 
 std::pair<date::year_month_day, date::year_month_day> ConstructeBusinessDayRange(date::year_month_day start_from, int how_many_business_days, UpOrDown order, const US_MarketHolidays* holidays=nullptr);
+
+// help us out for testing
+
+inline std::ostream& operator<<(std::ostream& os, US_MarketStatus status)
+{
+    switch(status)
+    {
+        case US_MarketStatus::e_NotOpenYet:
+            os << "US markets not open yet";
+            break;
+
+        case US_MarketStatus::e_ClosedForDay:
+            os << "US markets closed for the day";
+            break;
+
+        case US_MarketStatus::e_NonTradingDay:
+            os << "Non-trading day";
+            break;
+
+        case US_MarketStatus::e_OpenForTrading:
+            os << "US markets are open for trading";
+            break;
+    };
+
+	return os;
+}
 
 #endif   // ----- #ifndef _UTILITIES_INC_  ----- 
 

@@ -48,10 +48,9 @@ extern "C"
 //         Name:  GetUS_MarketOpen
 //  Description:  
 // =====================================================================================
-US_MarketTime GetUS_MarketOpen ()
+US_MarketTime GetUS_MarketOpenTime (const date::year_month_day& a_day)
 {
-    date::year_month_day today{floor<std::chrono::days>(std::chrono::system_clock::now())};
-    return date::zoned_time("America/New_York", date::local_days{today} + 9h + 30min + 0s);
+    return date::zoned_time("America/New_York", date::local_days{a_day} + 9h + 30min + 0s);
 }		// -----  end of function GetUS_MarketOpen  -----
 
 
@@ -59,10 +58,9 @@ US_MarketTime GetUS_MarketOpen ()
 //         Name:  GetUS_MarketClose
 //  Description:  
 // =====================================================================================
-US_MarketTime GetUS_MarketClose ( )
+US_MarketTime GetUS_MarketCloseTime (const date::year_month_day& a_day)
 {
-    date::year_month_day today{floor<std::chrono::days>(std::chrono::system_clock::now())};
-    return date::zoned_time{"America/New_York", date::local_days{today} + 16h + 0min + 0s};
+    return date::zoned_time{"America/New_York", date::local_days{a_day} + 16h + 0min + 0s};
 }		// -----  end of function GetUS_MarketClose  -----
 
 // ===  FUNCTION  ======================================================================
@@ -74,6 +72,44 @@ US_MarketTime CurrentLocalZonedTime()
 {
     return date::zoned_time{date::current_zone(), floor<std::chrono::seconds>(std::chrono::system_clock::now())};
 }		// -----  end of function CurrentLocalTime  -----
+
+
+// ===  FUNCTION  ======================================================================
+//         Name:  GetUS_MarketStatus
+//  Description:  
+// =====================================================================================
+
+US_MarketStatus GetUS_MarketStatus (std::string_view local_time_zone_name, date::sys_seconds a_time)
+{
+    // we convert the local time to US time then check to see if it's a US market holiday.
+    // If now, then we check to see if we are within trading hours.
+    
+    const auto users_local_time = date::zoned_time(local_time_zone_name, a_time);
+    const auto time_in_US = date::zoned_time("America/New_York", users_local_time);
+
+    const date::year_month_day today_in_US{floor<std::chrono::days>(time_in_US.get_local_time())};
+
+    bool is_market_open = IsUS_MarketOpen(today_in_US);
+    if (! is_market_open)
+    {
+        return US_MarketStatus::e_NonTradingDay;
+    }
+    auto local_market_open = date::zoned_time(local_time_zone_name, GetUS_MarketOpenTime(today_in_US));
+    auto local_market_close = date::zoned_time(local_time_zone_name, GetUS_MarketCloseTime(today_in_US));
+
+    std::cout << "Local Market Open: " <<  local_market_open << " Local Market Close: " << local_market_close << '\n';
+    std::cout << "current user's time: " <<  users_local_time  << '\n';
+
+    if ( users_local_time.get_local_time() < local_market_open.get_local_time())
+    {
+        return US_MarketStatus::e_NotOpenYet;
+    }
+    if (users_local_time.get_local_time() > local_market_close.get_local_time())
+    {
+        return US_MarketStatus::e_ClosedForDay;
+    }
+    return US_MarketStatus::e_OpenForTrading;
+}		// -----  end of function GetUS_MarketStatus  -----
 
 // ===  FUNCTION  ======================================================================
 //         Name:  TimePointToYMDString
@@ -155,6 +191,25 @@ std::string DateTimeAsString(std::chrono::system_clock::time_point a_date_time)
     std::string ts = date::format("%m-%d-%Y : %H:%M:%S", a_date_time);
     return ts;
 }		// -----  end of function DateTimeAsString  -----
+
+// ===  FUNCTION  ======================================================================
+//         Name:  IsUS_MarketOpen
+//  Description:  
+// =====================================================================================
+bool IsUS_MarketOpen (const date::year_month_day& a_day)
+{
+    // look for holidays and weekends
+    // start with weekends
+
+    date::weekday d1{date::sys_days{a_day}};
+    if (d1 == date::Saturday || d1 == date::Sunday)
+    {
+        return false;
+    }
+
+    auto holidays = MakeHolidayList(a_day.year());
+    return ranges::find(holidays, a_day, [](const auto& e) { return e.second; }) == holidays.end();
+}		// -----  end of function IsUS_MarketOpen  -----
 
 // ===  FUNCTION  ======================================================================
 //         Name:  ConstructeBusinessDayList
