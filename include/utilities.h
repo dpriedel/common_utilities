@@ -165,16 +165,14 @@ std::string DateTimeAsString(std::chrono::system_clock::time_point a_date_time);
 
 // some time values  for accessing streaming market data.
 
-using US_MarketTime = date::zoned_time<std::chrono::seconds>;
+using US_MarketTime = date::zoned_seconds;
 
 US_MarketTime GetUS_MarketOpenTime(const date::year_month_day& a_day);
 US_MarketTime GetUS_MarketCloseTime(const date::year_month_day& a_day);
 
-US_MarketTime CurrentLocalZonedTime();
-
 enum class US_MarketStatus { e_NotOpenYet, e_ClosedForDay, e_OpenForTrading, e_NonTradingDay};
 
-US_MarketStatus GetUS_MarketStatus(std::string_view local_time_zone_name, date::sys_seconds a_time);
+US_MarketStatus GetUS_MarketStatus(std::string_view local_time_zone_name, date::local_seconds a_time);
 
 // some more date related functions related to our point and figure project 
 //

@@ -50,7 +50,7 @@ extern "C"
 // =====================================================================================
 US_MarketTime GetUS_MarketOpenTime (const date::year_month_day& a_day)
 {
-    return date::zoned_time("America/New_York", date::local_days{a_day} + 9h + 30min + 0s);
+    return date::zoned_seconds("America/New_York", date::local_days{a_day} + 9h + 30min + 0s);
 }		// -----  end of function GetUS_MarketOpen  -----
 
 
@@ -60,32 +60,24 @@ US_MarketTime GetUS_MarketOpenTime (const date::year_month_day& a_day)
 // =====================================================================================
 US_MarketTime GetUS_MarketCloseTime (const date::year_month_day& a_day)
 {
-    return date::zoned_time{"America/New_York", date::local_days{a_day} + 16h + 0min + 0s};
+    return date::zoned_seconds{"America/New_York", date::local_days{a_day} + 16h + 0min + 0s};
 }		// -----  end of function GetUS_MarketClose  -----
-
-// ===  FUNCTION  ======================================================================
-//         Name:  CurrentLocalZonedTime
-//  Description:  
-// =====================================================================================
-
-US_MarketTime CurrentLocalZonedTime()
-{
-    return date::zoned_time{date::current_zone(), floor<std::chrono::seconds>(std::chrono::system_clock::now())};
-}		// -----  end of function CurrentLocalTime  -----
-
 
 // ===  FUNCTION  ======================================================================
 //         Name:  GetUS_MarketStatus
 //  Description:  
 // =====================================================================================
 
-US_MarketStatus GetUS_MarketStatus (std::string_view local_time_zone_name, date::sys_seconds a_time)
+US_MarketStatus GetUS_MarketStatus (std::string_view local_time_zone_name, date::local_seconds a_time)
 {
     // we convert the local time to US time then check to see if it's a US market holiday.
     // If now, then we check to see if we are within trading hours.
     
-    const auto users_local_time = date::zoned_time(local_time_zone_name, a_time);
-    const auto time_in_US = date::zoned_time("America/New_York", users_local_time);
+    const auto users_local_time = date::zoned_seconds(local_time_zone_name, a_time);
+    const auto time_in_US = date::zoned_seconds("America/New_York", users_local_time);
+
+    std::cout << "current user's local time: " <<  users_local_time  << '\n';
+    std::cout << "current user's time in US: " <<  time_in_US  << '\n';
 
     const date::year_month_day today_in_US{floor<std::chrono::days>(time_in_US.get_local_time())};
 
@@ -94,17 +86,16 @@ US_MarketStatus GetUS_MarketStatus (std::string_view local_time_zone_name, date:
     {
         return US_MarketStatus::e_NonTradingDay;
     }
-    auto local_market_open = date::zoned_time(local_time_zone_name, GetUS_MarketOpenTime(today_in_US));
-    auto local_market_close = date::zoned_time(local_time_zone_name, GetUS_MarketCloseTime(today_in_US));
+    auto local_market_open = date::zoned_seconds(local_time_zone_name, GetUS_MarketOpenTime(today_in_US));
+    auto local_market_close = date::zoned_seconds(local_time_zone_name, GetUS_MarketCloseTime(today_in_US));
 
-    std::cout << "Local Market Open: " <<  local_market_open << " Local Market Close: " << local_market_close << '\n';
-    std::cout << "current user's time: " <<  users_local_time  << '\n';
+//    std::cout << "Local Market Open: " <<  local_market_open << " Local Market Close: " << local_market_close << '\n';
 
-    if ( users_local_time.get_local_time() < local_market_open.get_local_time())
+    if ( users_local_time.get_sys_time() < local_market_open.get_sys_time())
     {
         return US_MarketStatus::e_NotOpenYet;
     }
-    if (users_local_time.get_local_time() > local_market_close.get_local_time())
+    if (users_local_time.get_sys_time() > local_market_close.get_sys_time())
     {
         return US_MarketStatus::e_ClosedForDay;
     }
