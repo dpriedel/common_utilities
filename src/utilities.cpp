@@ -76,8 +76,8 @@ US_MarketStatus GetUS_MarketStatus (std::string_view local_time_zone_name, date:
     const auto users_local_time = date::zoned_seconds(local_time_zone_name, a_time);
     const auto time_in_US = date::zoned_seconds("America/New_York", users_local_time);
 
-    std::cout << "current user's local time: " <<  users_local_time  << '\n';
-    std::cout << "current user's time in US: " <<  time_in_US  << '\n';
+//    std::cout << "current user's local time: " <<  users_local_time  << '\n';
+//    std::cout << "current user's time in US: " <<  time_in_US  << '\n';
 
     const date::year_month_day today_in_US{floor<std::chrono::days>(time_in_US.get_local_time())};
 
