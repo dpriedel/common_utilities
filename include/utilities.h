@@ -102,7 +102,7 @@ inline auto rng_split_string(std::string_view string_data, char delim)
 // custom fmtlib formatter for filesytem paths
 
 template <> struct fmt::formatter<std::filesystem::path>: formatter<std::string> {
-  // parse is inherited from formatter<string_view>.
+  // parse is inherited from formatter<string>.
   template <typename FormatContext>
   auto format(const std::filesystem::path& p, FormatContext& ctx) {
     std::string f_name = p.string();
@@ -111,26 +111,14 @@ template <> struct fmt::formatter<std::filesystem::path>: formatter<std::string>
 };
 
 // custom fmtlib formatter for date year_month_day
+// need this till GCC12 when crhono as new features ??
 
 template <> struct fmt::formatter<date::year_month_day>: formatter<std::string> {
-  // parse is inherited from formatter<string_view>.
+  // parse is inherited from formatter<string>.
   template <typename FormatContext>
-  auto format(date::year_month_day d, FormatContext& ctx) {
-    std::string s_date = date::format("%Y-%m-%d", d);
+  auto format(const date::year_month_day& d, FormatContext& ctx) {
+    std::string s_date = date::format("%F", d);
     return formatter<std::string>::format(s_date, ctx);
-  }
-};
-
-// custom fmtlib formatter for date time_of_day
-
-template <> struct fmt::formatter<date::local_seconds>: formatter<std::string> {
-  // parse is inherited from formatter<string_view>.
-  template <typename FormatContext>
-  auto format(date::local_seconds t, FormatContext& ctx) {
-    std::string s_time = date::format("%I:%M:%S", t);
-//      std::ostringstream ss;
-//      ss << t;
-    return formatter<std::string>::format(s_time, ctx);
   }
 };
 
@@ -147,21 +135,11 @@ enum class UseAdjusted { e_Yes, e_No };
 
 // some to/from date parsing functions
 
-std::string TimePointToYMDString(std::chrono::system_clock::time_point a_time_point);
-
 std::string TimePointToLocalHMSString(std::chrono::system_clock::time_point a_time_point);
 
 std::chrono::system_clock::time_point StringToTimePoint(std::string_view input_format, std::string_view the_date);
 
 date::year_month_day StringToDateYMD(std::string_view input_format, std::string_view the_date);
-
-// utility to convert a date::year_month_day to a string
-// using Howard Hinnant's date library
-// this function includes the time zone
-
-std::string LocalDateTimeAsString(std::chrono::system_clock::time_point a_date_time);
-
-std::string DateTimeAsString(std::chrono::system_clock::time_point a_date_time);
 
 // some time values  for accessing streaming market data.
 

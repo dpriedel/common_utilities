@@ -102,30 +102,10 @@ US_MarketStatus GetUS_MarketStatus (std::string_view local_time_zone_name, date:
     return US_MarketStatus::e_OpenForTrading;
 }		// -----  end of function GetUS_MarketStatus  -----
 
-// ===  FUNCTION  ======================================================================
-//         Name:  TimePointToYMDString
-//  Description:  
-// =====================================================================================
-std::string TimePointToYMDString (std::chrono::system_clock::time_point a_time_point)
-{
-    auto x1 = date::year_month_day{floor<std::chrono::days>(a_time_point)};
-    std::string result = fmt::format("{}", x1);
-    return result;
-}		// -----  end of function TimePointToYMDString  -----
-
-// ===  FUNCTION  ======================================================================
-//         Name:  TimePointToHMSString
-//  Description:  
-// =====================================================================================
-
 std::string TimePointToLocalHMSString(std::chrono::system_clock::time_point a_time_point)
 {
     auto t = date::zoned_time(date::current_zone(), floor<std::chrono::seconds>(a_time_point));
     std::string result = date::format("%I:%M:%S", t);
-//    if (result.ends_with(".000000000"))
-//    {
-//        result.resize(result.size() - 10);
-//    }
     return result;
 }		// -----  end of function TimePointToLocalHMSString  -----
 
@@ -155,33 +135,6 @@ date::year_month_day StringToDateYMD(std::string_view input_format, std::string_
     BOOST_ASSERT_MSG(result.ok(), fmt::format("Invalid date: {}", the_date).c_str());
     return result;
 }		// -----  end of method StringToDateYMD  ----- 
-
-// ===  FUNCTION  ======================================================================
-//         Name:  LocalDateTimeAsString
-//  Description:  
-// =====================================================================================
-
-std::string LocalDateTimeAsString(std::chrono::system_clock::time_point a_date_time)
-{
-    auto t = date::zoned_time(date::current_zone(), floor<std::chrono::seconds>(a_date_time));
-    std::string ts = date::format("%a, %b %d, %Y at %I:%M:%S %p %Z", t);
-//    if (auto pos = ts.find(".000000000"); pos != std::string::npos)
-//    {
-//        ts.erase(pos, pos + 10);
-//    }
-    return ts;
-}		// -----  end of function LocalDateTimeAsString  -----
-
-// ===  FUNCTION  ======================================================================
-//         Name:  DateTimeAsString
-//  Description:  
-// =====================================================================================
-
-std::string DateTimeAsString(std::chrono::system_clock::time_point a_date_time)
-{
-    std::string ts = date::format("%m-%d-%Y : %H:%M:%S", a_date_time);
-    return ts;
-}		// -----  end of function DateTimeAsString  -----
 
 // ===  FUNCTION  ======================================================================
 //         Name:  IsUS_MarketOpen
