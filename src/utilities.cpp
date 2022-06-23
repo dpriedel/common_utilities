@@ -16,6 +16,7 @@
 
 
 #include <chrono>
+#include <cstdint>
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
@@ -71,7 +72,7 @@ US_MarketTime GetUS_MarketCloseTime (const date::year_month_day& a_day)
 US_MarketStatus GetUS_MarketStatus (std::string_view local_time_zone_name, date::local_seconds a_time)
 {
     // we convert the local time to US time then check to see if it's a US market holiday.
-    // If now, then we check to see if we are within trading hours.
+    // If not, then we check to see if we are within trading hours.
     
     const auto users_local_time = date::zoned_seconds(local_time_zone_name, a_time);
     const auto time_in_US = date::zoned_seconds("America/New_York", users_local_time);
@@ -204,7 +205,7 @@ std::pair<date::year_month_day, date::year_month_day> ConstructeBusinessDayRange
 {
     // we need to do some date arithmetic so we can use our basic 'GetTickerData' method. 
 
-    auto days = date::sys_days(start_from);
+    auto days = date::sys_days{start_from};
 
     const std::chrono::days day_increment{order == UpOrDown::e_Up ? 1 : -1}; 
 
@@ -336,10 +337,11 @@ US_MarketHolidays MakeHolidayList (date::year which_year)
                     },
                 [which_year, &h_days, &h_name](const EasterRule& h_rule)
                     { 
-                        int month, day;
+                        int month = 0;
+                        int day = 0;
                         easter(GREGORIAN, which_year.operator int(), &month, &day); 
                         ymd easter_sunday{which_year, date::month(month), date::day(day)};
-                        date::sys_days good_friday = date::sys_days(easter_sunday) - date::days{2};
+                        date::sys_days good_friday = date::sys_days{easter_sunday} - date::days{2};
                         h_days.emplace_back(US_MarketHoliday{h_name, ymd{good_friday}});
                     },
                 [which_year, &h_days, &h_name](const JuneteenthRule& h_rule)
@@ -381,7 +383,7 @@ namespace boost
      * =====================================================================================
      */
 
-    void assertion_failed_msg (char const* expr, char const* msg, char const* function, char const* file, long line)
+    void assertion_failed_msg (char const* expr, char const* msg, char const* function, char const* file, int64_t line)
     {
         throw std::invalid_argument(fmt::format("\n*** Assertion failed *** test: {} in function: {} from file: {} at line: {} \nassertion msg: {}",
                     expr, function, file, line,  msg));
@@ -393,7 +395,7 @@ namespace boost
      *  Description:  
      * =====================================================================================
      */
-    void assertion_failed (char const* expr, char const* function, char const* file, long line )
+    void assertion_failed (char const* expr, char const* function, char const* file, int64_t line )
     {
         throw std::invalid_argument(fmt::format("\n*** Assertion failed *** test: {} in function: {} from file: {} at line: {}",
                     expr, function, file, line));

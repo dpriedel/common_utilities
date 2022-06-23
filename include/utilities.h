@@ -38,6 +38,16 @@
 
 namespace fs = std::filesystem;
 
+// keep our database related parms together
+
+struct DB_Params
+{
+	std::string user_name_;
+	std::string db_name_;
+	std::string host_name_;
+	int32_t port_number_;
+};
+
 // This ctype facet does NOT classify spaces and tabs as whitespace
 // from cppreference example
 
@@ -49,7 +59,7 @@ struct line_only_whitespace : std::ctype<char>
         static std::vector<mask> v(classic_table(), classic_table() + table_size);
         v['\t'] &= ~space;      // tab will not be classified as whitespace
         v[' '] &= ~space;       // space will not be classified as whitespace
-        return &v[0];
+        return v.data();
     }
     explicit line_only_whitespace(std::size_t refs = 0) : ctype(make_table(), false, refs) {}
 };
@@ -64,7 +74,7 @@ inline std::vector<T> split_string(std::string_view string_data, char delim)
     requires std::is_same_v<T, std::string> || std::is_same_v<T, std::string_view>
 {
     std::vector<T> results;
-	for (auto it = 0; it < string_data.size(); ++it)
+	for (size_t it = 0; it < string_data.size(); ++it)
 	{
 		auto pos = string_data.find(delim, it);
         if (pos != T::npos)
@@ -180,26 +190,39 @@ std::pair<date::year_month_day, date::year_month_day> ConstructeBusinessDayRange
 
 // help us out for testing
 
-inline std::ostream& operator<<(std::ostream& os, US_MarketStatus status)
-{
+// custom fmtlib formatter for US market status.
+
+template <> struct fmt::formatter<US_MarketStatus>: formatter<std::string> {
+  // parse is inherited from formatter<string>.
+  template <typename FormatContext>
+  auto format(US_MarketStatus status, FormatContext& ctx) {
+    std::string s;
     switch(status)
     {
-        case US_MarketStatus::e_NotOpenYet:
-            os << "US markets not open yet";
+        using enum US_MarketStatus;
+        case e_NotOpenYet:
+            s = "US markets not open yet";
             break;
 
-        case US_MarketStatus::e_ClosedForDay:
-            os << "US markets closed for the day";
+        case e_ClosedForDay:
+            s = "US markets closed for the day";
             break;
 
-        case US_MarketStatus::e_NonTradingDay:
-            os << "Non-trading day";
+        case e_NonTradingDay:
+            s = "Non-trading day";
             break;
 
-        case US_MarketStatus::e_OpenForTrading:
-            os << "US markets are open for trading";
+        case e_OpenForTrading:
+            s = "US markets are open for trading";
             break;
     };
+    return formatter<std::string>::format(s, ctx);
+  }
+};
+
+inline std::ostream& operator<<(std::ostream& os, US_MarketStatus status)
+{
+    fmt::format_to(std::ostream_iterator<char>{os}, "{}", status);
 
 	return os;
 }
