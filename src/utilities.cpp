@@ -174,7 +174,10 @@ std::vector<date::year_month_day> ConstructeBusinessDayList(date::year_month_day
 
     auto IsHoliday = [holidays](const date::year_month_day& a_day)
         {
-            if (holidays == nullptr) return false;
+            if (holidays == nullptr)
+            {
+                return false;
+            }
             return ranges::find(*holidays, a_day, [](const auto& e) { return e.second; }) != holidays->end();
         };
 
@@ -349,7 +352,7 @@ US_MarketHolidays MakeHolidayList (date::year which_year)
                         // first use of this holiday is 2022
                         if (which_year >= 2022_y)
                         {
-                            date::sys_days hday = ymd{which_year, date::month(6), date::day(19)};
+                            date::sys_days hday = ymd{which_year, date::month(date::June), date::day(19)};
                             ymwd hwday{hday};
                             const date::weekday which_day = hwday.weekday();
                             if (which_day == date::Sunday)
