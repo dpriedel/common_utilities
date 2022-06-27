@@ -45,6 +45,8 @@ struct DB_Params
 	std::string user_name_;
 	std::string db_name_;
 	std::string host_name_;
+	std::string db_mode_;
+	std::string db_data_source_;
 	int32_t port_number_;
 };
 
