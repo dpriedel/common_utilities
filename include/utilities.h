@@ -29,9 +29,11 @@
 #include <boost/assert.hpp>
 
 #include <date/date.h>
+#include <date/chrono_io.h>
 #include <date/tz.h>
 
 #include <fmt/format.h>
+#include <fmt/chrono.h>
 
 #include <range/v3/view/split.hpp>
 #include <range/v3/view/transform.hpp>
@@ -111,29 +113,6 @@ inline auto rng_split_string(std::string_view string_data, char delim)
     return splitter;
 }
 
-// custom fmtlib formatter for filesytem paths
-
-template <> struct fmt::formatter<std::filesystem::path>: formatter<std::string> {
-  // parse is inherited from formatter<string>.
-  template <typename FormatContext>
-  auto format(const std::filesystem::path& p, FormatContext& ctx) {
-    std::string f_name = p.string();
-    return formatter<std::string>::format(f_name, ctx);
-  }
-};
-
-// custom fmtlib formatter for date year_month_day
-// need this till GCC12 when crhono as new features ??
-
-template <> struct fmt::formatter<date::year_month_day>: formatter<std::string> {
-  // parse is inherited from formatter<string>.
-  template <typename FormatContext>
-  auto format(const date::year_month_day& d, FormatContext& ctx) {
-    std::string s_date = date::format("%F", d);
-    return formatter<std::string>::format(s_date, ctx);
-  }
-};
-
 // a (hopefully) efficient way to read an entire file into a string.  Does a binary read. 
 
 std::string LoadDataFileForUse (const fs::path& file_name);
@@ -147,9 +126,9 @@ enum class UseAdjusted { e_Yes, e_No };
 
 // some to/from date parsing functions
 
-std::string TimePointToLocalHMSString(std::chrono::system_clock::time_point a_time_point);
+std::string TimePointToLocalHMSString(date::utc_clock::time_point a_time_point);
 
-std::chrono::system_clock::time_point StringToTimePoint(std::string_view input_format, std::string_view the_date);
+date::utc_clock::time_point StringToUTCTimePoint(std::string_view input_format, std::string_view the_date);
 
 date::year_month_day StringToDateYMD(std::string_view input_format, std::string_view the_date);
 
@@ -191,6 +170,40 @@ std::vector<date::year_month_day> ConstructeBusinessDayList(date::year_month_day
 std::pair<date::year_month_day, date::year_month_day> ConstructeBusinessDayRange(date::year_month_day start_from, int how_many_business_days, UpOrDown order, const US_MarketHolidays* holidays=nullptr);
 
 // help us out for testing
+
+// custom fmtlib formatter for filesytem paths
+
+template <> struct fmt::formatter<std::filesystem::path>: formatter<std::string> {
+  // parse is inherited from formatter<string>.
+  template <typename FormatContext>
+  auto format(const std::filesystem::path& p, FormatContext& ctx) {
+    std::string f_name = p.string();
+    return formatter<std::string>::format(f_name, ctx);
+  }
+};
+
+// custom fmtlib formatter for date year_month_day
+// need this till GCC12 when chrono as new features ??
+
+template <> struct fmt::formatter<date::year_month_day>: formatter<std::string> {
+  // parse is inherited from formatter<string>.
+  template <typename FormatContext>
+  auto format(const date::year_month_day& d, FormatContext& ctx) {
+    std::string s_date = date::format("%F", d);
+    return formatter<std::string>::format(s_date, ctx);
+  }
+};
+
+// custom fmtlib formatter for UTC timepoint
+
+template <> struct fmt::formatter<date::utc_time<date::utc_clock::duration>>: fmt::formatter<std::chrono::time_point<std::chrono::system_clock>> {
+  template <typename FormatContext>
+  auto format(const date::utc_time<date::utc_clock::duration>& val,
+              FormatContext& ctx) const -> decltype(ctx.out()) {
+	  const auto xxx = date::clock_cast<std::chrono::system_clock>(val);
+    return formatter<std::tm, char>::format(fmt::gmtime(xxx), ctx); }
+
+};
 
 // custom fmtlib formatter for US market status.
 

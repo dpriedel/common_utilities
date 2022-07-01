@@ -103,9 +103,9 @@ US_MarketStatus GetUS_MarketStatus (std::string_view local_time_zone_name, date:
     return US_MarketStatus::e_OpenForTrading;
 }		// -----  end of function GetUS_MarketStatus  -----
 
-std::string TimePointToLocalHMSString(std::chrono::system_clock::time_point a_time_point)
+std::string TimePointToLocalHMSString(date::utc_clock::time_point a_time_point)
 {
-    auto t = date::zoned_time(date::current_zone(), floor<std::chrono::seconds>(a_time_point));
+    auto t = date::zoned_time(date::current_zone(), floor<std::chrono::seconds>(date::clock_cast<std::chrono::system_clock>(a_time_point)));
     std::string result = date::format("%I:%M:%S", t);
     return result;
 }		// -----  end of function TimePointToLocalHMSString  -----
@@ -115,13 +115,13 @@ std::string TimePointToLocalHMSString(std::chrono::system_clock::time_point a_ti
 //  Description:  
 // =====================================================================================
 
-std::chrono::system_clock::time_point StringToTimePoint(std::string_view input_format, std::string_view the_date)
+date::utc_clock::time_point StringToUTCTimePoint(std::string_view input_format, std::string_view the_date)
 {
     std::istringstream in{the_date.data()};
-    std::chrono::system_clock::time_point tp;
+    date::utc_clock::time_point tp;
     date::from_stream(in, input_format.data(), tp);
     BOOST_ASSERT_MSG(! in.fail() && ! in.bad(), fmt::format("Unable to parse given date: {}", the_date).c_str());
-    return tp;
+    return date::clock_cast<date::utc_clock>(tp);
 }		// -----  end of method StringToDateYMD  ----- 
 
 // ===  FUNCTION  ======================================================================
@@ -131,9 +131,10 @@ std::chrono::system_clock::time_point StringToTimePoint(std::string_view input_f
 
 date::year_month_day StringToDateYMD(std::string_view input_format, std::string_view the_date)
 {
-    auto timept = StringToTimePoint(input_format, the_date);
-    date::year_month_day result = floor<date::days>(timept);
-    BOOST_ASSERT_MSG(result.ok(), fmt::format("Invalid date: {}", the_date).c_str());
+    std::istringstream in{the_date.data()};
+    date::year_month_day result{};
+    date::from_stream(in, input_format.data(), result);
+    BOOST_ASSERT_MSG(! in.fail() && ! in.bad(), fmt::format("Unable to parse given date: {}", the_date).c_str());
     return result;
 }		// -----  end of method StringToDateYMD  ----- 
 
