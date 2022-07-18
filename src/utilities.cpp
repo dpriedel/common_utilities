@@ -103,12 +103,12 @@ US_MarketStatus GetUS_MarketStatus (std::string_view local_time_zone_name, date:
     return US_MarketStatus::e_OpenForTrading;
 }		// -----  end of function GetUS_MarketStatus  -----
 
-std::string TimePointToLocalHMSString(date::utc_clock::time_point a_time_point)
+std::string UTCTimePointToLocalTZHMSString(date::utc_clock::time_point a_time_point)
 {
     auto t = date::zoned_time(date::current_zone(), floor<std::chrono::seconds>(date::clock_cast<std::chrono::system_clock>(a_time_point)));
     std::string result = date::format("%I:%M:%S", t);
     return result;
-}		// -----  end of function TimePointToLocalHMSString  -----
+}		// -----  end of function UTCTimePointToLocalTZHMSString  -----
 
 // ===  FUNCTION  ======================================================================
 //         Name:  StringToTimePoint

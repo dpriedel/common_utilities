@@ -126,7 +126,7 @@ enum class UseAdjusted { e_Yes, e_No };
 
 // some to/from date parsing functions
 
-std::string TimePointToLocalHMSString(date::utc_clock::time_point a_time_point);
+std::string UTCTimePointToLocalTZHMSString(date::utc_clock::time_point a_time_point);
 
 date::utc_clock::time_point StringToUTCTimePoint(std::string_view input_format, std::string_view the_date);
 
