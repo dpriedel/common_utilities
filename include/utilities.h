@@ -175,9 +175,9 @@ std::pair<date::year_month_day, date::year_month_day> ConstructeBusinessDayRange
 
 template <> struct fmt::formatter<std::filesystem::path>: formatter<std::string> {
   // parse is inherited from formatter<string>.
-  template <typename FormatContext>
-  auto format(const std::filesystem::path& p, FormatContext& ctx) {
-    std::string f_name = p.string();
+  auto format(const std::filesystem::path& p, fmt::format_context& ctx) {
+    std::string f_name;
+	fmt::format_to(std::back_inserter(f_name), "{}", p.string());
     return formatter<std::string>::format(f_name, ctx);
   }
 };
@@ -187,9 +187,9 @@ template <> struct fmt::formatter<std::filesystem::path>: formatter<std::string>
 
 template <> struct fmt::formatter<date::year_month_day>: formatter<std::string> {
   // parse is inherited from formatter<string>.
-  template <typename FormatContext>
-  auto format(const date::year_month_day& d, FormatContext& ctx) {
-    std::string s_date = date::format("%F", d);
+  auto format(const date::year_month_day& d, fmt::format_context& ctx) {
+	std::string s_date;
+	fmt::format_to(std::back_inserter(s_date), "{}", date::format("%F", d));
     return formatter<std::string>::format(s_date, ctx);
   }
 };
@@ -197,9 +197,7 @@ template <> struct fmt::formatter<date::year_month_day>: formatter<std::string> 
 // custom fmtlib formatter for UTC timepoint
 
 template <> struct fmt::formatter<date::utc_time<date::utc_clock::duration>>: fmt::formatter<std::chrono::time_point<std::chrono::system_clock>> {
-  template <typename FormatContext>
-  auto format(const date::utc_time<date::utc_clock::duration>& val,
-              FormatContext& ctx) const -> decltype(ctx.out()) {
+  auto format(const date::utc_time<date::utc_clock::duration>& val, fmt::format_context& ctx) {
 	  const auto xxx = date::clock_cast<std::chrono::system_clock>(val);
     return formatter<std::tm, char>::format(fmt::gmtime(xxx), ctx); }
 
@@ -209,26 +207,25 @@ template <> struct fmt::formatter<date::utc_time<date::utc_clock::duration>>: fm
 
 template <> struct fmt::formatter<US_MarketStatus>: formatter<std::string> {
   // parse is inherited from formatter<string>.
-  template <typename FormatContext>
-  auto format(US_MarketStatus status, FormatContext& ctx) {
+  auto format(US_MarketStatus status, fmt::format_context& ctx) {
     std::string s;
     switch(status)
     {
         using enum US_MarketStatus;
         case e_NotOpenYet:
-            s = "US markets not open yet";
+			fmt::format_to(std::back_inserter(s), "{}", "US markets not open yet");
             break;
 
         case e_ClosedForDay:
-            s = "US markets closed for the day";
+			fmt::format_to(std::back_inserter(s), "{}", "US markets closed for the day");
             break;
 
         case e_NonTradingDay:
-            s = "Non-trading day";
+			fmt::format_to(std::back_inserter(s), "{}", "Non-trading day");
             break;
 
         case e_OpenForTrading:
-            s = "US markets are open for trading";
+			fmt::format_to(std::back_inserter(s), "{}", "US markets are open for trading");
             break;
     };
     return formatter<std::string>::format(s, ctx);
