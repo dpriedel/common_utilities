@@ -374,6 +374,46 @@ US_MarketHolidays MakeHolidayList (date::year which_year)
     return h_days;
 }		// -----  end of function MakeHolidayList  -----
 
+// ===  FUNCTION  ======================================================================
+//         Name:  ConvertJSONPriceHistory
+//         Description:  Expects the input data is in descending order by date
+// =====================================================================================
+
+std::vector<PriceDataRecord> ConvertJSONPriceHistory (const std::string& symbol, const Json::Value& the_data, int32_t how_many_days, UseAdjusted use_adjusted)
+{
+    std::vector<PriceDataRecord> history;
+
+    if (use_adjusted == UseAdjusted::e_Yes)
+    {
+        for (int32_t i = 0; i < how_many_days; ++i)
+        {
+            PriceDataRecord record;
+            record.date_ = the_data[i]["date"].asString();
+            record.symbol_ = symbol;
+            record.open_ = DprDecimal::DDecQuad{the_data[i]["adjOpen"].asString()};
+            record.high_ = DprDecimal::DDecQuad{the_data[i]["adjHigh"].asString()};
+            record.low_ = DprDecimal::DDecQuad{the_data[i]["adjLow"].asString()};
+            record.close_ = DprDecimal::DDecQuad{the_data[i]["adjClose"].asString()};
+            history.push_back(std::move(record));
+        }
+    }
+    else
+    {
+        for (int32_t i = 0; i < how_many_days; ++i)
+        {
+            PriceDataRecord record;
+            record.date_ = the_data[i]["date"].asString();
+            record.symbol_ = symbol;
+            record.open_ = DprDecimal::DDecQuad{the_data[i]["open"].asString()};
+            record.high_ = DprDecimal::DDecQuad{the_data[i]["high"].asString()};
+            record.low_ = DprDecimal::DDecQuad{the_data[i]["low"].asString()};
+            record.close_ = DprDecimal::DDecQuad{the_data[i]["close"].asString()};
+            history.push_back(std::move(record));
+        }
+    }
+	return history;
+}		// -----  end of function ConvertJSONPriceHistory  -----
+
 namespace boost
 {
     // these functions are declared in the library headers but left to the user to define.

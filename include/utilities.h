@@ -35,10 +35,14 @@
 #include <fmt/format.h>
 #include <fmt/chrono.h>
 
+#include <json/json.h>
+
 #include <range/v3/view/split.hpp>
 #include <range/v3/view/transform.hpp>
 
 namespace fs = std::filesystem;
+
+#include "DDecQuad.h"
 
 // keep our database related parms together
 
@@ -50,6 +54,17 @@ struct DB_Params
 	std::string db_mode_;
 	std::string db_data_source_;
 	int32_t port_number_;
+};
+
+struct PriceDataRecord
+{
+	std::string date_;
+	std::string exchange_;
+	std::string symbol_;
+	DprDecimal::DDecQuad open_;
+	DprDecimal::DDecQuad high_;
+	DprDecimal::DDecQuad low_;
+	DprDecimal::DDecQuad close_;
 };
 
 // This ctype facet does NOT classify spaces and tabs as whitespace
@@ -169,6 +184,10 @@ std::vector<date::year_month_day> ConstructeBusinessDayList(date::year_month_day
 
 std::pair<date::year_month_day, date::year_month_day> ConstructeBusinessDayRange(date::year_month_day start_from, int how_many_business_days, UpOrDown order, const US_MarketHolidays* holidays=nullptr);
 
+    // bridge between Tiingo price history data and DB price history data
+
+std::vector<PriceDataRecord> ConvertJSONPriceHistory(const std::string& symbol, const Json::Value& the_data, int32_t how_many_days, UseAdjusted use_adjusted);
+
 // help us out for testing
 
 // custom fmtlib formatter for filesytem paths
@@ -201,6 +220,24 @@ template <> struct fmt::formatter<date::utc_time<date::utc_clock::duration>>: fm
 	  const auto xxx = date::clock_cast<std::chrono::system_clock>(val);
     return formatter<std::tm, char>::format(fmt::gmtime(xxx), ctx); }
 
+};
+
+// custom formatter for PriceDataRecord 
+
+template <> struct fmt::formatter<PriceDataRecord>: formatter<std::string> {
+  // parse is inherited from formatter<string>.
+  auto format(const PriceDataRecord& pdr, fmt::format_context& ctx) {
+	std::string record;
+	fmt::format_to(std::back_inserter(record), "{}, {}, {}, {}, {}, {}, {}",
+			pdr.date_,
+			pdr.exchange_,
+			pdr.symbol_,
+			pdr.open_,
+			pdr.high_,
+			pdr.low_,
+			pdr.close_);
+    return formatter<std::string>::format(record, ctx);
+  }
 };
 
 // custom fmtlib formatter for US market status.
