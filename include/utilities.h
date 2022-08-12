@@ -46,17 +46,7 @@ namespace fs = std::filesystem;
 
 // keep our database related parms together
 
-struct DB_Params
-{
-	std::string user_name_;
-	std::string db_name_;
-	std::string host_name_;
-	std::string db_mode_;
-	std::string db_data_source_;
-	int32_t port_number_;
-};
-
-struct PriceDataRecord
+struct StockDataRecord
 {
 	std::string date_;
 	std::string exchange_;
@@ -65,6 +55,19 @@ struct PriceDataRecord
 	DprDecimal::DDecQuad high_;
 	DprDecimal::DDecQuad low_;
 	DprDecimal::DDecQuad close_;
+};
+
+struct DateCloseRecord
+{
+	date::utc_clock::time_point date_;
+	DprDecimal::DDecQuad close_;
+};
+
+struct MultiSymbolDateCloseRecord
+{
+    std::string symbol_;
+	date::utc_clock::time_point date_;
+    DprDecimal::DDecQuad close_;
 };
 
 // This ctype facet does NOT classify spaces and tabs as whitespace
@@ -186,7 +189,7 @@ std::pair<date::year_month_day, date::year_month_day> ConstructeBusinessDayRange
 
     // bridge between Tiingo price history data and DB price history data
 
-std::vector<PriceDataRecord> ConvertJSONPriceHistory(const std::string& symbol, const Json::Value& the_data, int32_t how_many_days, UseAdjusted use_adjusted);
+std::vector<StockDataRecord> ConvertJSONPriceHistory(const std::string& symbol, const Json::Value& the_data, uint32_t how_many_days, UseAdjusted use_adjusted);
 
 // help us out for testing
 
@@ -224,9 +227,9 @@ template <> struct fmt::formatter<date::utc_time<date::utc_clock::duration>>: fm
 
 // custom formatter for PriceDataRecord 
 
-template <> struct fmt::formatter<PriceDataRecord>: formatter<std::string> {
+template <> struct fmt::formatter<StockDataRecord>: formatter<std::string> {
   // parse is inherited from formatter<string>.
-  auto format(const PriceDataRecord& pdr, fmt::format_context& ctx) {
+  auto format(const StockDataRecord& pdr, fmt::format_context& ctx) {
 	std::string record;
 	fmt::format_to(std::back_inserter(record), "{}, {}, {}, {}, {}, {}, {}",
 			pdr.date_,

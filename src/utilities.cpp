@@ -15,6 +15,7 @@
 // =====================================================================================
 
 
+#include <algorithm>
 #include <chrono>
 #include <cstdint>
 #include <fstream>
@@ -379,15 +380,17 @@ US_MarketHolidays MakeHolidayList (date::year which_year)
 //         Description:  Expects the input data is in descending order by date
 // =====================================================================================
 
-std::vector<PriceDataRecord> ConvertJSONPriceHistory (const std::string& symbol, const Json::Value& the_data, int32_t how_many_days, UseAdjusted use_adjusted)
+std::vector<StockDataRecord> ConvertJSONPriceHistory (const std::string& symbol, const Json::Value& the_data, uint32_t how_many_days, UseAdjusted use_adjusted)
 {
-    std::vector<PriceDataRecord> history;
+    std::vector<StockDataRecord> history;
+
+    auto how_many = std::min(how_many_days, the_data.size());
 
     if (use_adjusted == UseAdjusted::e_Yes)
     {
-        for (int32_t i = 0; i < how_many_days; ++i)
+        for (int32_t i = 0; i < how_many; ++i)
         {
-            PriceDataRecord record;
+            StockDataRecord record;
             record.date_ = the_data[i]["date"].asString();
             record.symbol_ = symbol;
             record.open_ = DprDecimal::DDecQuad{the_data[i]["adjOpen"].asString()};
@@ -399,9 +402,9 @@ std::vector<PriceDataRecord> ConvertJSONPriceHistory (const std::string& symbol,
     }
     else
     {
-        for (int32_t i = 0; i < how_many_days; ++i)
+        for (int32_t i = 0; i < how_many; ++i)
         {
-            PriceDataRecord record;
+            StockDataRecord record;
             record.date_ = the_data[i]["date"].asString();
             record.symbol_ = symbol;
             record.open_ = DprDecimal::DDecQuad{the_data[i]["open"].asString()};
