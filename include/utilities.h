@@ -49,7 +49,6 @@ namespace fs = std::filesystem;
 struct StockDataRecord
 {
 	std::string date_;
-	std::string exchange_;
 	std::string symbol_;
 	DprDecimal::DDecQuad open_;
 	DprDecimal::DDecQuad high_;
@@ -231,9 +230,8 @@ template <> struct fmt::formatter<StockDataRecord>: formatter<std::string> {
   // parse is inherited from formatter<string>.
   auto format(const StockDataRecord& pdr, fmt::format_context& ctx) {
 	std::string record;
-	fmt::format_to(std::back_inserter(record), "{}, {}, {}, {}, {}, {}, {}",
+	fmt::format_to(std::back_inserter(record), "{}, {}, {}, {}, {}, {}",
 			pdr.date_,
-			pdr.exchange_,
 			pdr.symbol_,
 			pdr.open_,
 			pdr.high_,
