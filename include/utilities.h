@@ -20,6 +20,7 @@
 #include <chrono>
 #include <filesystem>
 #include <locale>
+#include <map>
 #include <string>
 #include <sstream>
 #include <string_view>
@@ -45,6 +46,18 @@ namespace fs = std::filesystem;
 #include "DDecQuad.h"
 
 // keep our database related parms together
+
+// for streamed data, we want to be able to show a graphic of
+// price history along with the P&F graphic for each ticker that
+// we are monitoring.
+
+struct streamed_prices
+{
+    std::vector<int64_t> timestamp_;
+    std::vector<double> price_;
+};
+
+using PF_StreamedPrices = std::map<std::string, streamed_prices>;
 
 struct StockDataRecord
 {
