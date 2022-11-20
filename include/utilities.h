@@ -55,6 +55,7 @@ struct streamed_prices
 {
     std::vector<int64_t> timestamp_ = {};
     std::vector<double> price_ = {};
+    std::vector<int32_t> signal_type_ = {};
 };
 
 using PF_StreamedPrices = std::map<std::string, streamed_prices>;
