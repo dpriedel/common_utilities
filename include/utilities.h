@@ -19,6 +19,7 @@
 
 #include <chrono>
 #include <filesystem>
+#include <format>
 #include <locale>
 #include <map>
 #include <string>
@@ -33,8 +34,8 @@
 // #include <date/chrono_io.h>
 // #include <date/tz.h>
 
-#include <fmt/format.h>
-#include <fmt/chrono.h>
+// #include <fmt/format.h>
+// #include <fmt/chrono.h>
 
 #include <json/json.h>
 
@@ -208,51 +209,26 @@ std::vector<StockDataRecord> ConvertJSONPriceHistory(const std::string& symbol, 
 
 // custom fmtlib formatter for filesytem paths
 
-template <> struct fmt::formatter<std::filesystem::path>: formatter<std::string>
+template <> struct std::formatter<std::filesystem::path>: std::formatter<std::string>
 {
   // parse is inherited from formatter<string>.
-    auto format(const std::filesystem::path& p, fmt::format_context& ctx) const
+    auto format(const std::filesystem::path& p, std::format_context& ctx) const
     {
         std::string f_name;
-        fmt::format_to(std::back_inserter(f_name), "{}", p.string());
+        std::format_to(std::back_inserter(f_name), "{}", p.string());
         return formatter<std::string>::format(f_name, ctx);
-    }
-};
-
-// custom fmtlib formatter for date year_month_day
-// need this till GCC12 when chrono as new features ??
-
-template <> struct fmt::formatter<std::chrono::year_month_day>: formatter<std::string>
-{
-    // parse is inherited from formatter<string>.
-    auto format(const std::chrono::year_month_day& d, fmt::format_context& ctx) const
-    {
-        std::string s_date;
-        fmt::format_to(std::back_inserter(s_date), "{}", std::format("{:%F}", d));
-        return formatter<std::string>::format(s_date, ctx);
-    }
-};
-
-// custom fmtlib formatter for UTC timepoint
-
-template <> struct fmt::formatter<std::chrono::utc_time<std::chrono::utc_clock::duration>>: fmt::formatter<std::chrono::time_point<std::chrono::system_clock>>
-{
-    auto format(const std::chrono::utc_time<std::chrono::utc_clock::duration>& val, fmt::format_context& ctx) const
-    {
-        const auto xxx = std::chrono::clock_cast<std::chrono::system_clock>(val);
-        return formatter<std::tm, char>::format(fmt::gmtime(xxx), ctx);
     }
 };
 
 // custom formatter for PriceDataRecord 
 
-template <> struct fmt::formatter<StockDataRecord>: formatter<std::string>
+template <> struct std::formatter<StockDataRecord>: std::formatter<std::string>
 {
     // parse is inherited from formatter<string>.
-    auto format(const StockDataRecord& pdr, fmt::format_context& ctx) const
+    auto format(const StockDataRecord& pdr, std::format_context& ctx) const
     {
         std::string record;
-        fmt::format_to(std::back_inserter(record), "{}, {}, {}, {}, {}, {}",
+        std::format_to(std::back_inserter(record), "{}, {}, {}, {}, {}, {}",
 		        pdr.date_,
 		        pdr.symbol_,
 		        pdr.open_,
@@ -265,29 +241,29 @@ template <> struct fmt::formatter<StockDataRecord>: formatter<std::string>
 
 // custom fmtlib formatter for US market status.
 
-template <> struct fmt::formatter<US_MarketStatus>: formatter<std::string>
+template <> struct std::formatter<US_MarketStatus>: std::formatter<std::string>
 {
     // parse is inherited from formatter<string>.
-    auto format(US_MarketStatus status, fmt::format_context& ctx) const
+    auto format(US_MarketStatus status, std::format_context& ctx) const
     {
         std::string s;
         switch(status)
         {
             using enum US_MarketStatus;
             case e_NotOpenYet:
-		        fmt::format_to(std::back_inserter(s), "{}", "US markets not open yet");
+		        std::format_to(std::back_inserter(s), "{}", "US markets not open yet");
                 break;
 
             case e_ClosedForDay:
-		        fmt::format_to(std::back_inserter(s), "{}", "US markets closed for the day");
+		        std::format_to(std::back_inserter(s), "{}", "US markets closed for the day");
                 break;
 
             case e_NonTradingDay:
-		        fmt::format_to(std::back_inserter(s), "{}", "Non-trading day");
+		        std::format_to(std::back_inserter(s), "{}", "Non-trading day");
                 break;
 
             case e_OpenForTrading:
-		        fmt::format_to(std::back_inserter(s), "{}", "US markets are open for trading");
+		        std::format_to(std::back_inserter(s), "{}", "US markets are open for trading");
                 break;
         };
         return formatter<std::string>::format(s, ctx);
@@ -296,7 +272,7 @@ template <> struct fmt::formatter<US_MarketStatus>: formatter<std::string>
 
 inline std::ostream& operator<<(std::ostream& os, US_MarketStatus status)
 {
-    fmt::format_to(std::ostream_iterator<char>{os}, "{}", status);
+    std::format_to(std::ostream_iterator<char>{os}, "{}", status);
 
 	return os;
 }

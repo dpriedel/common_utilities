@@ -32,8 +32,8 @@
 // using namespace std::chrono::literals;
 using namespace std::chrono_literals;
 
-#include <fmt/chrono.h>
-#include <fmt/format.h>
+// #include <fmt/chrono.h>
+// #include <fmt/format.h>
 
 #include <range/v3/algorithm/for_each.hpp>
 #include <range/v3/algorithm/find.hpp>
@@ -122,7 +122,7 @@ std::chrono::utc_clock::time_point StringToUTCTimePoint(std::string_view input_f
     std::istringstream in{the_date.data()};
     date::utc_clock::time_point tp;
     date::from_stream(in, input_format.data(), tp);
-    BOOST_ASSERT_MSG(! in.fail() && ! in.bad(), fmt::format("Unable to parse given date: {}", the_date).c_str());
+    BOOST_ASSERT_MSG(! in.fail() && ! in.bad(), std::format("Unable to parse given date: {}", the_date).c_str());
     std::chrono::utc_time<std::chrono::utc_clock::duration> tp1{tp.time_since_epoch()};
     return tp1;
 }		// -----  end of method StringToDateYMD  ----- 
@@ -137,7 +137,7 @@ std::chrono::year_month_day StringToDateYMD(std::string_view input_format, std::
     std::istringstream in{the_date.data()};
     date::year_month_day result{};
     date::from_stream(in, input_format.data(), result);
-    BOOST_ASSERT_MSG(! in.fail() && ! in.bad(), fmt::format("Unable to parse given date: {}", the_date).c_str());
+    BOOST_ASSERT_MSG(! in.fail() && ! in.bad(), std::format("Unable to parse given date: {}", the_date).c_str());
     std::chrono::year_month_day result1(std::chrono::year{result.year().operator int()}, std::chrono::month{result.month().operator unsigned()}, std::chrono::day{result.day().operator unsigned()});
     return result1;
 }		// -----  end of method StringToDateYMD  ----- 
@@ -233,7 +233,7 @@ std::string LoadDataFileForUse (const fs::path& file_name)
     std::string file_content;     // make room for trailing null
     file_content.reserve(fs::file_size(file_name) + 1);
     std::ifstream input_file{file_name, std::ios_base::in | std::ios_base::binary};
-    BOOST_ASSERT_MSG(input_file.is_open(), fmt::format("Can't open data file: {}.", file_name).c_str());
+    BOOST_ASSERT_MSG(input_file.is_open(), std::format("Can't open data file: {}.", file_name).c_str());
 //    input_file.read(&file_content[0], file_content.size());
 	file_content.assign(std::istreambuf_iterator<char>(input_file), std::istreambuf_iterator<char>());
     input_file.close();
@@ -438,7 +438,7 @@ namespace boost
 
     void assertion_failed_msg (char const* expr, char const* msg, char const* function, char const* file, int64_t line)
     {
-        throw std::invalid_argument(fmt::format("\n*** Assertion failed *** test: {} in function: {} from file: {} at line: {} \nassertion msg: {}",
+        throw std::invalid_argument(std::format("\n*** Assertion failed *** test: {} in function: {} from file: {} at line: {} \nassertion msg: {}",
                     expr, function, file, line,  msg));
     }		/* -----  end of function assertion_failed_mgs  ----- */
 
@@ -450,7 +450,7 @@ namespace boost
      */
     void assertion_failed (char const* expr, char const* function, char const* file, int64_t line )
     {
-        throw std::invalid_argument(fmt::format("\n*** Assertion failed *** test: {} in function: {} from file: {} at line: {}",
+        throw std::invalid_argument(std::format("\n*** Assertion failed *** test: {} in function: {} from file: {} at line: {}",
                     expr, function, file, line));
     }		/* -----  end of function assertion_failed  ----- */
 } /* end namespace boost */
