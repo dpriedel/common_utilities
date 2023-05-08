@@ -108,7 +108,7 @@ US_MarketStatus GetUS_MarketStatus (std::string_view local_time_zone_name, std::
 std::string UTCTimePointToLocalTZHMSString(std::chrono::utc_clock::time_point a_time_point)
 {
     auto t = date::zoned_time(std::chrono::current_zone(), floor<std::chrono::seconds>(std::chrono::clock_cast<std::chrono::system_clock>(a_time_point)));
-    std::string result = date::format("%T", t);
+    std::string result = date::format("%H:%M:%S", t);
     return result;
 }		// -----  end of function UTCTimePointToLocalTZHMSString  -----
 
