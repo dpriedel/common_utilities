@@ -25,10 +25,11 @@
 #include <variant>
 #include <vector>
 
-#include <date/date.h>
+#include <date/date.h>      // for from_stream
+#include <date/chrono_io.h>
 #include <date/tz.h>
 
-using namespace date::literals;
+// using namespace std::chrono::literals;
 using namespace std::chrono_literals;
 
 #include <fmt/chrono.h>
@@ -50,9 +51,9 @@ extern "C"
 //         Name:  GetUS_MarketOpen
 //  Description:  
 // =====================================================================================
-US_MarketTime GetUS_MarketOpenTime (const date::year_month_day& a_day)
+US_MarketTime GetUS_MarketOpenTime (const std::chrono::year_month_day& a_day)
 {
-    return date::zoned_seconds("America/New_York", date::local_days{a_day} + 9h + 30min + 0s);
+    return std::chrono::zoned_seconds("America/New_York", std::chrono::local_days{a_day} + 9h + 30min + 0s);
 }		// -----  end of function GetUS_MarketOpen  -----
 
 
@@ -60,9 +61,9 @@ US_MarketTime GetUS_MarketOpenTime (const date::year_month_day& a_day)
 //         Name:  GetUS_MarketClose
 //  Description:  
 // =====================================================================================
-US_MarketTime GetUS_MarketCloseTime (const date::year_month_day& a_day)
+US_MarketTime GetUS_MarketCloseTime (const std::chrono::year_month_day& a_day)
 {
-    return date::zoned_seconds{"America/New_York", date::local_days{a_day} + 16h + 0min + 0s};
+    return std::chrono::zoned_seconds{"America/New_York", std::chrono::local_days{a_day} + 16h + 0min + 0s};
 }		// -----  end of function GetUS_MarketClose  -----
 
 // ===  FUNCTION  ======================================================================
@@ -70,26 +71,26 @@ US_MarketTime GetUS_MarketCloseTime (const date::year_month_day& a_day)
 //  Description:  
 // =====================================================================================
 
-US_MarketStatus GetUS_MarketStatus (std::string_view local_time_zone_name, date::local_seconds a_time)
+US_MarketStatus GetUS_MarketStatus (std::string_view local_time_zone_name, std::chrono::local_seconds a_time)
 {
     // we convert the local time to US time then check to see if it's a US market holiday.
     // If not, then we check to see if we are within trading hours.
     
-    const auto users_local_time = date::zoned_seconds(local_time_zone_name, a_time);
-    const auto time_in_US = date::zoned_seconds("America/New_York", users_local_time);
+    const auto users_local_time = std::chrono::zoned_seconds(local_time_zone_name, a_time);
+    const auto time_in_US = std::chrono::zoned_seconds("America/New_York", users_local_time);
 
 //    std::cout << "current user's local time: " <<  users_local_time  << '\n';
 //    std::cout << "current user's time in US: " <<  time_in_US  << '\n';
 
-    const date::year_month_day today_in_US{floor<std::chrono::days>(time_in_US.get_local_time())};
+    const std::chrono::year_month_day today_in_US{floor<std::chrono::days>(time_in_US.get_local_time())};
 
     bool is_market_open = IsUS_MarketOpen(today_in_US);
     if (! is_market_open)
     {
         return US_MarketStatus::e_NonTradingDay;
     }
-    auto local_market_open = date::zoned_seconds(local_time_zone_name, GetUS_MarketOpenTime(today_in_US));
-    auto local_market_close = date::zoned_seconds(local_time_zone_name, GetUS_MarketCloseTime(today_in_US));
+    auto local_market_open = std::chrono::zoned_seconds(local_time_zone_name, GetUS_MarketOpenTime(today_in_US));
+    auto local_market_close = std::chrono::zoned_seconds(local_time_zone_name, GetUS_MarketCloseTime(today_in_US));
 
 //    std::cout << "Local Market Open: " <<  local_market_open << " Local Market Close: " << local_market_close << '\n';
 
@@ -104,10 +105,10 @@ US_MarketStatus GetUS_MarketStatus (std::string_view local_time_zone_name, date:
     return US_MarketStatus::e_OpenForTrading;
 }		// -----  end of function GetUS_MarketStatus  -----
 
-std::string UTCTimePointToLocalTZHMSString(date::utc_clock::time_point a_time_point)
+std::string UTCTimePointToLocalTZHMSString(std::chrono::utc_clock::time_point a_time_point)
 {
-    auto t = date::zoned_time(date::current_zone(), floor<std::chrono::seconds>(date::clock_cast<std::chrono::system_clock>(a_time_point)));
-    std::string result = date::format("%I:%M:%S", t);
+    auto t = date::zoned_time(std::chrono::current_zone(), floor<std::chrono::seconds>(std::chrono::clock_cast<std::chrono::system_clock>(a_time_point)));
+    std::string result = date::format("%T", t);
     return result;
 }		// -----  end of function UTCTimePointToLocalTZHMSString  -----
 
@@ -116,13 +117,14 @@ std::string UTCTimePointToLocalTZHMSString(date::utc_clock::time_point a_time_po
 //  Description:  
 // =====================================================================================
 
-date::utc_clock::time_point StringToUTCTimePoint(std::string_view input_format, std::string_view the_date)
+std::chrono::utc_clock::time_point StringToUTCTimePoint(std::string_view input_format, std::string_view the_date)
 {
     std::istringstream in{the_date.data()};
     date::utc_clock::time_point tp;
     date::from_stream(in, input_format.data(), tp);
     BOOST_ASSERT_MSG(! in.fail() && ! in.bad(), fmt::format("Unable to parse given date: {}", the_date).c_str());
-    return date::clock_cast<date::utc_clock>(tp);
+    std::chrono::utc_time<std::chrono::utc_clock::duration> tp1{tp.time_since_epoch()};
+    return tp1;
 }		// -----  end of method StringToDateYMD  ----- 
 
 // ===  FUNCTION  ======================================================================
@@ -130,26 +132,27 @@ date::utc_clock::time_point StringToUTCTimePoint(std::string_view input_format, 
 //  Description:  
 // =====================================================================================
 
-date::year_month_day StringToDateYMD(std::string_view input_format, std::string_view the_date)
+std::chrono::year_month_day StringToDateYMD(std::string_view input_format, std::string_view the_date)
 {
     std::istringstream in{the_date.data()};
     date::year_month_day result{};
     date::from_stream(in, input_format.data(), result);
     BOOST_ASSERT_MSG(! in.fail() && ! in.bad(), fmt::format("Unable to parse given date: {}", the_date).c_str());
-    return result;
+    std::chrono::year_month_day result1(std::chrono::year{result.year().operator int()}, std::chrono::month{result.month().operator unsigned()}, std::chrono::day{result.day().operator unsigned()});
+    return result1;
 }		// -----  end of method StringToDateYMD  ----- 
 
 // ===  FUNCTION  ======================================================================
 //         Name:  IsUS_MarketOpen
 //  Description:  
 // =====================================================================================
-bool IsUS_MarketOpen (const date::year_month_day& a_day)
+bool IsUS_MarketOpen (const std::chrono::year_month_day& a_day)
 {
     // look for holidays and weekends
     // start with weekends
 
-    date::weekday d1{date::sys_days{a_day}};
-    if (d1 == date::Saturday || d1 == date::Sunday)
+    std::chrono::weekday d1{std::chrono::sys_days{a_day}};
+    if (d1 == std::chrono::Saturday || d1 == std::chrono::Sunday)
     {
         return false;
     }
@@ -164,17 +167,17 @@ bool IsUS_MarketOpen (const date::year_month_day& a_day)
 //                skipping holidays.
 // =====================================================================================
 
-std::vector<date::year_month_day> ConstructeBusinessDayList(date::year_month_day start_from, int how_many_business_days, UpOrDown order, const US_MarketHolidays* holidays)
+std::vector<std::chrono::year_month_day> ConstructeBusinessDayList(std::chrono::year_month_day start_from, int how_many_business_days, UpOrDown order, const US_MarketHolidays* holidays)
 {
     // we need to do some date arithmetic so we can use our basic 'GetTickerData' method. 
 
-    auto days = date::sys_days(start_from);
+    auto days = std::chrono::sys_days(start_from);
 
     const std::chrono::days day_increment{order == UpOrDown::e_Up ? 1 : -1}; 
 
-    std::vector<date::year_month_day> business_days;
+    std::vector<std::chrono::year_month_day> business_days;
 
-    auto IsHoliday = [holidays](const date::year_month_day& a_day)
+    auto IsHoliday = [holidays](const std::chrono::year_month_day& a_day)
         {
             if (holidays == nullptr)
             {
@@ -185,11 +188,11 @@ std::vector<date::year_month_day> ConstructeBusinessDayList(date::year_month_day
 
     while (business_days.size() < how_many_business_days)
     {
-        auto b_day = date::weekday{days};
-        while (b_day == date::Saturday || b_day == date::Sunday || IsHoliday(days))
+        auto b_day = std::chrono::weekday{days};
+        while (b_day == std::chrono::Saturday || b_day == std::chrono::Sunday || IsHoliday(days))
         {
             days += day_increment;
-            b_day = date::weekday{days};
+            b_day = std::chrono::weekday{days};
         }
         business_days.push_back(days);
         days += day_increment;
@@ -206,11 +209,11 @@ std::vector<date::year_month_day> ConstructeBusinessDayList(date::year_month_day
 //                skipping holidays.
 // =====================================================================================
 
-std::pair<date::year_month_day, date::year_month_day> ConstructeBusinessDayRange(date::year_month_day start_from, int how_many_business_days, UpOrDown order, const US_MarketHolidays* holidays)
+std::pair<std::chrono::year_month_day, std::chrono::year_month_day> ConstructeBusinessDayRange(std::chrono::year_month_day start_from, int how_many_business_days, UpOrDown order, const US_MarketHolidays* holidays)
 {
     // we need to do some date arithmetic so we can use our basic 'GetTickerData' method. 
 
-    auto days = date::sys_days{start_from};
+    auto days = std::chrono::sys_days{start_from};
 
     const std::chrono::days day_increment{order == UpOrDown::e_Up ? 1 : -1}; 
 
@@ -247,20 +250,19 @@ template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
 //         Name:  MakeHolidayList
 //  Description:  
 // =====================================================================================
-US_MarketHolidays MakeHolidayList (date::year which_year)
+US_MarketHolidays MakeHolidayList (std::chrono::year which_year)
 {
     // save us some typing,,,
 
-    using namespace std::literals::chrono_literals;
-    using namespace date::literals;
+    using namespace std::chrono_literals;
 
-    using md = date::month_day;
-    using mwd = date::month_weekday;
-    using mwdl = date::month_weekday_last;
+    using md = std::chrono::month_day;
+    using mwd = std::chrono::month_weekday;
+    using mwdl = std::chrono::month_weekday_last;
 
-    using ymd = date::year_month_day;
-    using ymwd = date::year_month_weekday;
-    using ymwdl = date::year_month_weekday_last;
+    using ymd = std::chrono::year_month_day;
+    using ymwd = std::chrono::year_month_weekday;
+    using ymwdl = std::chrono::year_month_weekday_last;
 
     struct NewYearsDayRule {};     // New Years day does not fall back to previous year.
     struct EasterRule {};       // use this to trigger computation needed to find Good Friday.
@@ -274,22 +276,22 @@ US_MarketHolidays MakeHolidayList (date::year which_year)
     // with gcc 12, the below will become 'constexpr'
 
     static const HolidayRule NewYears = std::make_pair("New Years", NewYearsDayRule{});
-    static const HolidayRule MLKDay = std::make_pair("Martin Luther King Day", mwd{date::January, date::weekday_indexed{date::Monday, 3}});
-    static const HolidayRule WashingtonBday = std::make_pair("Presidents Day", mwd{date::February, date::weekday_indexed{date::Monday, 3}});
+    static const HolidayRule MLKDay = std::make_pair("Martin Luther King Day", mwd{std::chrono::January, std::chrono::weekday_indexed{std::chrono::Monday, 3}});
+    static const HolidayRule WashingtonBday = std::make_pair("Presidents Day", mwd{std::chrono::February, std::chrono::weekday_indexed{std::chrono::Monday, 3}});
     static const HolidayRule GoodFriday = std::make_pair("Good Frday", EasterRule{});
-    static const HolidayRule MemorialDay = std::make_pair("Memorial Day", mwdl{date::May, date::Monday[last]});
+    static const HolidayRule MemorialDay = std::make_pair("Memorial Day", mwdl{std::chrono::May, std::chrono::Monday[std::chrono::last]});
     static const HolidayRule Juneteenth = std::make_pair("Juneteenth", JuneteenthRule{});
-    static const HolidayRule IndependenceDay = std::make_pair("Independence Day", md{date::July, 4_d});
-    static const HolidayRule LaborDay = std::make_pair("Labor Day", mwd{date::September, date::weekday_indexed{date::Monday, 1}});
-    static const HolidayRule Thanksgiving = std::make_pair("Thanksgiving Day", mwd{date::November, date::weekday_indexed{date::Thursday, 4}});
-    static const HolidayRule Christmas = std::make_pair("Christmas Day", md{date::December, 25_d});
+    static const HolidayRule IndependenceDay = std::make_pair("Independence Day", md{std::chrono::July, 4d});
+    static const HolidayRule LaborDay = std::make_pair("Labor Day", mwd{std::chrono::September, std::chrono::weekday_indexed{std::chrono::Monday, 1}});
+    static const HolidayRule Thanksgiving = std::make_pair("Thanksgiving Day", mwd{std::chrono::November, std::chrono::weekday_indexed{std::chrono::Thursday, 4}});
+    static const HolidayRule Christmas = std::make_pair("Christmas Day", md{std::chrono::December, 25d});
 
     static const HolidayRuleList holiday_rules = {NewYears, MLKDay, WashingtonBday, GoodFriday, MemorialDay, Juneteenth,
         IndependenceDay, LaborDay, Thanksgiving, Christmas};
 
-//    static const std::vector<ymd> GoodFridays = {{2022_y, date::April, 15_d}, {2023_y, date::April, 7_d}, {2024_y, date::March, 29_d},
-//        {2025_y, date::April, 18_d}, {2026_y, date::April, 3_d}, {2027_y, date::March, 26_d}, {2028_y, date::April, 14_d},
-//        {2029_y, date::March, 30_d}, {2030_y, date::April, 19_d}};
+//    static const std::vector<ymd> GoodFridays = {{2022_y, std::chrono::April, 15_d}, {2023_y, std::chrono::April, 7_d}, {2024_y, std::chrono::March, 29_d},
+//        {2025_y, std::chrono::April, 18_d}, {2026_y, std::chrono::April, 3_d}, {2027_y, std::chrono::March, 26_d}, {2028_y, std::chrono::April, 14_d},
+//        {2029_y, std::chrono::March, 30_d}, {2030_y, std::chrono::April, 19_d}};
 
     US_MarketHolidays h_days;
 
@@ -307,16 +309,16 @@ US_MarketHolidays MakeHolidayList (date::year which_year)
                         // these holidays can be any day of the week so adjust observed day 
                         // for Saturdays and Sundays 
 
-                        date::sys_days hday = ymd{which_year, h_rule.month(), h_rule.day()};
+                        std::chrono::sys_days hday = ymd{which_year, h_rule.month(), h_rule.day()};
                         ymwd hwday{hday};
-                        const date::weekday which_day = hwday.weekday();
-                        if (which_day == date::Sunday)
+                        const std::chrono::weekday which_day = hwday.weekday();
+                        if (which_day == std::chrono::Sunday)
                         {
-                            hday += date::days{1};
+                            hday += std::chrono::days{1};
                         }
-                        else if (which_day == date::Saturday)
+                        else if (which_day == std::chrono::Saturday)
                         {
-                            hday -= date::days{1};
+                            hday -= std::chrono::days{1};
                         }
                         h_days.emplace_back(US_MarketHoliday{h_name, ymd{hday}});
                     },
@@ -328,14 +330,14 @@ US_MarketHolidays MakeHolidayList (date::year which_year)
                     { 
                         // If New Years falls on a Saturday, then no holiday observed.
                         // If on a Sunday, then Monday
-                        date::sys_days newyears = ymd{which_year, date::month{1}, date::day{1}};
+                        std::chrono::sys_days newyears = ymd{which_year, std::chrono::month{1}, std::chrono::day{1}};
                         ymwd newyearsday{newyears};
-                        const date::weekday which_day = newyearsday.weekday();
-                        if (which_day == date::Sunday)
+                        const std::chrono::weekday which_day = newyearsday.weekday();
+                        if (which_day == std::chrono::Sunday)
                         {
-                            newyears += date::days{1};
+                            newyears += std::chrono::days{1};
                         }
-                        if (which_day != date::Saturday)
+                        if (which_day != std::chrono::Saturday)
                         {
                             h_days.emplace_back(US_MarketHoliday{h_name, ymd{newyears}});
                         }
@@ -345,25 +347,25 @@ US_MarketHolidays MakeHolidayList (date::year which_year)
                         int month = 0;
                         int day = 0;
                         easter(GREGORIAN, which_year.operator int(), &month, &day); 
-                        ymd easter_sunday{which_year, date::month(month), date::day(day)};
-                        date::sys_days good_friday = date::sys_days{easter_sunday} - date::days{2};
+                        ymd easter_sunday{which_year, std::chrono::month(month), std::chrono::day(day)};
+                        std::chrono::sys_days good_friday = std::chrono::sys_days{easter_sunday} - std::chrono::days{2};
                         h_days.emplace_back(US_MarketHoliday{h_name, ymd{good_friday}});
                     },
                 [which_year, &h_days, &h_name](const JuneteenthRule& h_rule)
                     { 
                         // first use of this holiday is 2022
-                        if (which_year >= 2022_y)
+                        if (which_year >= 2022y)
                         {
-                            date::sys_days hday = ymd{which_year, date::month(date::June), date::day(19)};
+                            std::chrono::sys_days hday = ymd{which_year, std::chrono::month(std::chrono::June), std::chrono::day(19)};
                             ymwd hwday{hday};
-                            const date::weekday which_day = hwday.weekday();
-                            if (which_day == date::Sunday)
+                            const std::chrono::weekday which_day = hwday.weekday();
+                            if (which_day == std::chrono::Sunday)
                             {
-                                hday += date::days{1};
+                                hday += std::chrono::days{1};
                             }
-                            else if (which_day == date::Saturday)
+                            else if (which_day == std::chrono::Saturday)
                             {
-                                hday -= date::days{1};
+                                hday -= std::chrono::days{1};
                             }
                             h_days.emplace_back(US_MarketHoliday{h_name, ymd{hday}});
                         }

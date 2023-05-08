@@ -29,9 +29,9 @@
 
 #include <boost/assert.hpp>
 
-#include <date/date.h>
-#include <date/chrono_io.h>
-#include <date/tz.h>
+// #include <date/date.h>
+// #include <date/chrono_io.h>
+// #include <date/tz.h>
 
 #include <fmt/format.h>
 #include <fmt/chrono.h>
@@ -72,14 +72,14 @@ struct StockDataRecord
 
 struct DateCloseRecord
 {
-	date::utc_clock::time_point date_;
+	std::chrono::utc_clock::time_point date_;
 	DprDecimal::DDecQuad close_;
 };
 
 struct MultiSymbolDateCloseRecord
 {
     std::string symbol_;
-	date::utc_clock::time_point date_;
+	std::chrono::utc_clock::time_point date_;
     DprDecimal::DDecQuad close_;
 };
 
@@ -157,22 +157,22 @@ enum class UseAdjusted { e_Yes, e_No };
 
 // some to/from date parsing functions
 
-std::string UTCTimePointToLocalTZHMSString(date::utc_clock::time_point a_time_point);
+std::string UTCTimePointToLocalTZHMSString(std::chrono::utc_clock::time_point a_time_point);
 
-date::utc_clock::time_point StringToUTCTimePoint(std::string_view input_format, std::string_view the_date);
+std::chrono::utc_clock::time_point StringToUTCTimePoint(std::string_view input_format, std::string_view the_date);
 
-date::year_month_day StringToDateYMD(std::string_view input_format, std::string_view the_date);
+std::chrono::year_month_day StringToDateYMD(std::string_view input_format, std::string_view the_date);
 
 // some time values  for accessing streaming market data.
 
-using US_MarketTime = date::zoned_seconds;
+using US_MarketTime = std::chrono::zoned_seconds;
 
-US_MarketTime GetUS_MarketOpenTime(const date::year_month_day& a_day);
-US_MarketTime GetUS_MarketCloseTime(const date::year_month_day& a_day);
+US_MarketTime GetUS_MarketOpenTime(const std::chrono::year_month_day& a_day);
+US_MarketTime GetUS_MarketCloseTime(const std::chrono::year_month_day& a_day);
 
 enum class US_MarketStatus { e_NotOpenYet, e_ClosedForDay, e_OpenForTrading, e_NonTradingDay};
 
-US_MarketStatus GetUS_MarketStatus(std::string_view local_time_zone_name, date::local_seconds a_time);
+US_MarketStatus GetUS_MarketStatus(std::string_view local_time_zone_name, std::chrono::local_seconds a_time);
 
 // some more date related functions related to our point and figure project 
 //
@@ -180,25 +180,25 @@ US_MarketStatus GetUS_MarketStatus(std::string_view local_time_zone_name, date::
 // NOTE: List will contain day holidays are observed by market, not necessarily
 // the actual date of the holiday
 
-using US_MarketHoliday = std::pair<const std::string, const date::year_month_day>;
+using US_MarketHoliday = std::pair<const std::string, const std::chrono::year_month_day>;
 using US_MarketHolidays = std::vector<US_MarketHoliday>;
 
-US_MarketHolidays MakeHolidayList(date::year which_year);
+US_MarketHolidays MakeHolidayList(std::chrono::year which_year);
 
 // see if the US Stock market is open on the given day.
 
-bool IsUS_MarketOpen(const date::year_month_day& a_day);
+bool IsUS_MarketOpen(const std::chrono::year_month_day& a_day);
 
 // this function will generate a list of dates which spans the specified number of business days, optionally
 // taking holidays into account.  the starting date is included.
 // This is useful for generating test data.
 
-std::vector<date::year_month_day> ConstructeBusinessDayList(date::year_month_day start_from, int how_many_business_days, UpOrDown order, const US_MarketHolidays* holidays=nullptr);
+std::vector<std::chrono::year_month_day> ConstructeBusinessDayList(std::chrono::year_month_day start_from, int how_many_business_days, UpOrDown order, const US_MarketHolidays* holidays=nullptr);
 
 // this function will generate a pair of dates which spans the specified number of business days, optionally
 // taking holidays into account.  the starting date is included.
 
-std::pair<date::year_month_day, date::year_month_day> ConstructeBusinessDayRange(date::year_month_day start_from, int how_many_business_days, UpOrDown order, const US_MarketHolidays* holidays=nullptr);
+std::pair<std::chrono::year_month_day, std::chrono::year_month_day> ConstructeBusinessDayRange(std::chrono::year_month_day start_from, int how_many_business_days, UpOrDown order, const US_MarketHolidays* holidays=nullptr);
 
     // bridge between Tiingo price history data and DB price history data
 
@@ -222,24 +222,24 @@ template <> struct fmt::formatter<std::filesystem::path>: formatter<std::string>
 // custom fmtlib formatter for date year_month_day
 // need this till GCC12 when chrono as new features ??
 
-template <> struct fmt::formatter<date::year_month_day>: formatter<std::string>
+template <> struct fmt::formatter<std::chrono::year_month_day>: formatter<std::string>
 {
     // parse is inherited from formatter<string>.
-    auto format(const date::year_month_day& d, fmt::format_context& ctx) const
+    auto format(const std::chrono::year_month_day& d, fmt::format_context& ctx) const
     {
         std::string s_date;
-        fmt::format_to(std::back_inserter(s_date), "{}", date::format("%F", d));
+        fmt::format_to(std::back_inserter(s_date), "{}", std::format("{:%F}", d));
         return formatter<std::string>::format(s_date, ctx);
     }
 };
 
 // custom fmtlib formatter for UTC timepoint
 
-template <> struct fmt::formatter<date::utc_time<date::utc_clock::duration>>: fmt::formatter<std::chrono::time_point<std::chrono::system_clock>>
+template <> struct fmt::formatter<std::chrono::utc_time<std::chrono::utc_clock::duration>>: fmt::formatter<std::chrono::time_point<std::chrono::system_clock>>
 {
-    auto format(const date::utc_time<date::utc_clock::duration>& val, fmt::format_context& ctx) const
+    auto format(const std::chrono::utc_time<std::chrono::utc_clock::duration>& val, fmt::format_context& ctx) const
     {
-        const auto xxx = date::clock_cast<std::chrono::system_clock>(val);
+        const auto xxx = std::chrono::clock_cast<std::chrono::system_clock>(val);
         return formatter<std::tm, char>::format(fmt::gmtime(xxx), ctx);
     }
 };
