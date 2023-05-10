@@ -17,11 +17,13 @@
 #ifndef  _UTILITIES_INC_
 #define  _UTILITIES_INC_
 
+#include <algorithm>
 #include <chrono>
 #include <filesystem>
 #include <format>
 #include <locale>
 #include <map>
+#include <ranges>
 #include <string>
 #include <sstream>
 #include <string_view>
@@ -39,8 +41,8 @@
 
 #include <json/json.h>
 
-#include <range/v3/view/split.hpp>
-#include <range/v3/view/transform.hpp>
+// #include <range/v3/view/split.hpp>
+// #include <range/v3/view/transform.hpp>
 
 namespace fs = std::filesystem;
 
@@ -106,7 +108,7 @@ struct line_only_whitespace : std::ctype<char>
 // use concepts to restrict to strings and string_views.
 
 template<typename T>
-inline std::vector<T> split_string(std::string_view string_data, char delim)
+inline std::vector<T> split_string(std::string_view string_data, std::string_view delim)
     requires std::is_same_v<T, std::string> || std::is_same_v<T, std::string_view>
 {
     std::vector<T> results;
@@ -132,14 +134,16 @@ inline std::vector<T> split_string(std::string_view string_data, char delim)
 // no requirement to split the whole input up front.
 
 template<typename T>
-inline auto rng_split_string(std::string_view string_data, char delim)
+inline auto rng_split_string(std::string_view string_data, std::string_view delim)
     requires std::is_same_v<T, std::string> || std::is_same_v<T, std::string_view>
 {
-    auto splitter = string_data
-        | ranges::views::split(delim)
-        | ranges::views::transform([](auto &&item_rng)
+    // namespace rng = std::ranges;
+    namespace vws = std::ranges::views;
+
+    auto splitter = vws::split(string_data,  delim)
+        | vws::transform([](auto &&item_rng)
             {
-                return T(&*item_rng.begin(), ranges::distance(item_rng));
+                return T(item_rng.begin(), item_rng.end());
             });
 
     return splitter;

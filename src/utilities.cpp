@@ -32,11 +32,14 @@
 // using namespace std::chrono::literals;
 using namespace std::chrono_literals;
 
+namespace rng = std::ranges;
+namespace vws = std::ranges::views;
+
 // #include <fmt/chrono.h>
 // #include <fmt/format.h>
 
-#include <range/v3/algorithm/for_each.hpp>
-#include <range/v3/algorithm/find.hpp>
+// #include <range/v3/algorithm/for_each.hpp>
+// #include <range/v3/algorithm/find.hpp>
 
 //#include <range/v3/range/conversion.hpp>
 //#include <range/v3/view/transform.hpp>
@@ -158,7 +161,7 @@ bool IsUS_MarketOpen (const std::chrono::year_month_day& a_day)
     }
 
     auto holidays = MakeHolidayList(a_day.year());
-    return ranges::find(holidays, a_day, [](const auto& e) { return e.second; }) == holidays.end();
+    return rng::find(holidays, a_day, [](const auto& e) { return e.second; }) == holidays.end();
 }		// -----  end of function IsUS_MarketOpen  -----
 
 // ===  FUNCTION  ======================================================================
@@ -183,7 +186,7 @@ std::vector<std::chrono::year_month_day> ConstructeBusinessDayList(std::chrono::
             {
                 return false;
             }
-            return ranges::find(*holidays, a_day, [](const auto& e) { return e.second; }) != holidays->end();
+            return rng::find(*holidays, a_day, [](const auto& e) { return e.second; }) != holidays->end();
         };
 
     while (business_days.size() < how_many_business_days)
