@@ -32,17 +32,7 @@
 
 #include <boost/assert.hpp>
 
-// #include <date/date.h>
-// #include <date/chrono_io.h>
-// #include <date/tz.h>
-
-// #include <fmt/format.h>
-// #include <fmt/chrono.h>
-
 #include <json/json.h>
-
-// #include <range/v3/view/split.hpp>
-// #include <range/v3/view/transform.hpp>
 
 namespace fs = std::filesystem;
 

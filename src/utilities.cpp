@@ -26,23 +26,13 @@
 #include <vector>
 
 #include <date/date.h>      // for from_stream
-#include <date/chrono_io.h>
+// #include <date/chrono_io.h>
 #include <date/tz.h>
 
-// using namespace std::chrono::literals;
 using namespace std::chrono_literals;
 
 namespace rng = std::ranges;
 namespace vws = std::ranges::views;
-
-// #include <fmt/chrono.h>
-// #include <fmt/format.h>
-
-// #include <range/v3/algorithm/for_each.hpp>
-// #include <range/v3/algorithm/find.hpp>
-
-//#include <range/v3/range/conversion.hpp>
-//#include <range/v3/view/transform.hpp>
 
 #include "utilities.h"
 extern "C"
