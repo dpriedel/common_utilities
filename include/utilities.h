@@ -34,10 +34,44 @@
 
 #include <json/json.h>
 
+#include <decimal.hh>
+
 namespace fs = std::filesystem;
 
-#include "DDecQuad.h"
+// #include "DDecQuad.h"
 
+// mpdecimal does not include functions for working with floating point types
+// so provided minimal interface through character representatons as intermediaries.
+//
+inline decimal::Decimal dbl2dec(double number)
+{
+    std::array<char, 30> buf{};
+    if (auto [p, ec] = std::to_chars(buf.data(), buf.data() + buf.size() - 1, number, std::chars_format::fixed);
+            ec == std::errc())
+    {
+        // string is NOT NULL terminated
+        *p = '\0';
+    }
+    else
+    {
+        throw std::runtime_error(std::format("Problem converting double to decimal: {}\n", std::make_error_code(ec).message()));
+    }
+
+    return decimal::Decimal{buf.data()};
+}
+
+inline double dec2dbl (const decimal::Decimal& dec)
+{
+    // I don't see a better way to do this.
+
+    std::string temp = dec.format("{g}");
+    double result{};
+    if (auto [p, ec] = std::from_chars(temp.data(), temp.data() + temp.size(), result); ec != std::errc())
+    {
+        throw std::runtime_error(std::format("Problem converting decimal to double: {}\n", std::make_error_code(ec).message()));
+    }
+    return result ;
+}
 // keep our database related parms together
 
 // for streamed data, we want to be able to show a graphic of
@@ -57,23 +91,23 @@ struct StockDataRecord
 {
 	std::string date_;
 	std::string symbol_;
-	DprDecimal::DDecQuad open_;
-	DprDecimal::DDecQuad high_;
-	DprDecimal::DDecQuad low_;
-	DprDecimal::DDecQuad close_;
+	decimal::Decimal open_;
+	decimal::Decimal high_;
+	decimal::Decimal low_;
+	decimal::Decimal close_;
 };
 
 struct DateCloseRecord
 {
 	std::chrono::utc_clock::time_point date_;
-	DprDecimal::DDecQuad close_;
+	decimal::Decimal close_;
 };
 
 struct MultiSymbolDateCloseRecord
 {
     std::string symbol_;
 	std::chrono::utc_clock::time_point date_;
-    DprDecimal::DDecQuad close_;
+    decimal::Decimal close_;
 };
 
 // This ctype facet does NOT classify spaces and tabs as whitespace
@@ -225,10 +259,10 @@ template <> struct std::formatter<StockDataRecord>: std::formatter<std::string>
         std::format_to(std::back_inserter(record), "{}, {}, {}, {}, {}, {}",
 		        pdr.date_,
 		        pdr.symbol_,
-		        pdr.open_,
-		        pdr.high_,
-		        pdr.low_,
-		        pdr.close_);
+		        pdr.open_.format("{g}"),
+		        pdr.high_.format("{g}"),
+		        pdr.low_.format("{g}"),
+		        pdr.close_.format("{g}"));
         return formatter<std::string>::format(record, ctx);
     }
 };

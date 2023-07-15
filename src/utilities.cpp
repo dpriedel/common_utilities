@@ -392,10 +392,10 @@ std::vector<StockDataRecord> ConvertJSONPriceHistory (const std::string& symbol,
             StockDataRecord record;
             record.date_ = the_data[i]["date"].asString();
             record.symbol_ = symbol;
-            record.open_ = DprDecimal::DDecQuad{the_data[i]["adjOpen"].asString()};
-            record.high_ = DprDecimal::DDecQuad{the_data[i]["adjHigh"].asString()};
-            record.low_ = DprDecimal::DDecQuad{the_data[i]["adjLow"].asString()};
-            record.close_ = DprDecimal::DDecQuad{the_data[i]["adjClose"].asString()};
+            record.open_ = decimal::Decimal{the_data[i]["adjOpen"].asString()};
+            record.high_ = decimal::Decimal{the_data[i]["adjHigh"].asString()};
+            record.low_ = decimal::Decimal{the_data[i]["adjLow"].asString()};
+            record.close_ = decimal::Decimal{the_data[i]["adjClose"].asString()};
             history.push_back(std::move(record));
         }
     }
@@ -406,10 +406,10 @@ std::vector<StockDataRecord> ConvertJSONPriceHistory (const std::string& symbol,
             StockDataRecord record;
             record.date_ = the_data[i]["date"].asString();
             record.symbol_ = symbol;
-            record.open_ = DprDecimal::DDecQuad{the_data[i]["open"].asString()};
-            record.high_ = DprDecimal::DDecQuad{the_data[i]["high"].asString()};
-            record.low_ = DprDecimal::DDecQuad{the_data[i]["low"].asString()};
-            record.close_ = DprDecimal::DDecQuad{the_data[i]["close"].asString()};
+            record.open_ = decimal::Decimal{the_data[i]["open"].asString()};
+            record.high_ = decimal::Decimal{the_data[i]["high"].asString()};
+            record.low_ = decimal::Decimal{the_data[i]["low"].asString()};
+            record.close_ = decimal::Decimal{the_data[i]["close"].asString()};
             history.push_back(std::move(record));
         }
     }
