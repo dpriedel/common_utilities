@@ -18,9 +18,11 @@
 #define  _UTILITIES_INC_
 
 #include <algorithm>
+#include <array>
 #include <chrono>
 #include <filesystem>
 #include <format>
+#include <iterator>
 #include <locale>
 #include <map>
 #include <ranges>
@@ -72,6 +74,20 @@ inline double dec2dbl (const decimal::Decimal& dec)
     }
     return result ;
 }
+
+// convenience function to construct a Decimal from a string view
+
+inline decimal::Decimal sv2dec(std::string_view text)
+{
+    constexpr size_t kBufLen = 30;
+    BOOST_ASSERT_MSG(text.size() < kBufLen, std::format("String value: {} is too long to convert to Decimal.", text).c_str());
+    std::array<char, kBufLen> buf{};
+    auto result = std::ranges::copy(text, buf.begin());
+    *result.out = '\0';
+
+    return decimal::Decimal{buf.data()};
+}
+
 // keep our database related parms together
 
 // for streamed data, we want to be able to show a graphic of
