@@ -40,7 +40,6 @@
 
 namespace fs = std::filesystem;
 
-// #include "DDecQuad.h"
 
 // mpdecimal does not include functions for working with floating point types
 // so provided minimal interface through character representatons as intermediaries.
