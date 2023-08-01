@@ -65,7 +65,7 @@ inline double dec2dbl (const decimal::Decimal& dec)
 {
     // I don't see a better way to do this.
 
-    std::string temp = dec.format("g");
+    std::string temp = dec.format("f");
     double result{};
     if (auto [p, ec] = std::from_chars(temp.data(), temp.data() + temp.size(), result); ec != std::errc())
     {
@@ -274,10 +274,10 @@ template <> struct std::formatter<StockDataRecord>: std::formatter<std::string>
         std::format_to(std::back_inserter(record), "{}, {}, {}, {}, {}, {}",
 		        pdr.date_,
 		        pdr.symbol_,
-		        pdr.open_.format("g"),
-		        pdr.high_.format("g"),
-		        pdr.low_.format("g"),
-		        pdr.close_.format("g"));
+		        pdr.open_.format("f"),
+		        pdr.high_.format("f"),
+		        pdr.low_.format("f"),
+		        pdr.close_.format("f"));
         return formatter<std::string>::format(record, ctx);
     }
 };
