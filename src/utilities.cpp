@@ -390,12 +390,12 @@ std::vector<StockDataRecord> ConvertJSONPriceHistory (const std::string& symbol,
         for (int32_t i = 0; i < how_many; ++i)
         {
             StockDataRecord record;
-            record.date_ = the_data[i]["date"].asString();
+            record.date_ = the_data[i]["date"].asCString();
             record.symbol_ = symbol;
-            record.open_ = decimal::Decimal{the_data[i]["adjOpen"].asString()};
-            record.high_ = decimal::Decimal{the_data[i]["adjHigh"].asString()};
-            record.low_ = decimal::Decimal{the_data[i]["adjLow"].asString()};
-            record.close_ = decimal::Decimal{the_data[i]["adjClose"].asString()};
+            record.open_ = decimal::Decimal{the_data[i]["adjOpen"].asCString()};
+            record.high_ = decimal::Decimal{the_data[i]["adjHigh"].asCString()};
+            record.low_ = decimal::Decimal{the_data[i]["adjLow"].asCString()};
+            record.close_ = decimal::Decimal{the_data[i]["adjClose"].asCString()};
             history.push_back(std::move(record));
         }
     }
@@ -404,12 +404,12 @@ std::vector<StockDataRecord> ConvertJSONPriceHistory (const std::string& symbol,
         for (int32_t i = 0; i < how_many; ++i)
         {
             StockDataRecord record;
-            record.date_ = the_data[i]["date"].asString();
+            record.date_ = the_data[i]["date"].asCString();
             record.symbol_ = symbol;
-            record.open_ = decimal::Decimal{the_data[i]["open"].asString()};
-            record.high_ = decimal::Decimal{the_data[i]["high"].asString()};
-            record.low_ = decimal::Decimal{the_data[i]["low"].asString()};
-            record.close_ = decimal::Decimal{the_data[i]["close"].asString()};
+            record.open_ = decimal::Decimal{the_data[i]["open"].asCString()};
+            record.high_ = decimal::Decimal{the_data[i]["high"].asCString()};
+            record.low_ = decimal::Decimal{the_data[i]["low"].asCString()};
+            record.close_ = decimal::Decimal{the_data[i]["close"].asCString()};
             history.push_back(std::move(record));
         }
     }
