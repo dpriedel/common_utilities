@@ -93,14 +93,14 @@ inline decimal::Decimal sv2dec(std::string_view text)
 // price history along with the P&F graphic for each ticker that
 // we are monitoring.
 
-struct streamed_prices
+struct StreamedPrices
 {
     std::vector<int64_t> timestamp_ = {};
     std::vector<double> price_ = {};
     std::vector<int32_t> signal_type_ = {};
 };
 
-using PF_StreamedPrices = std::map<std::string, streamed_prices>;
+using PF_StreamedPrices = std::map<std::string, StreamedPrices>;
 
 struct StockDataRecord
 {
@@ -192,9 +192,13 @@ inline auto rng_split_string(std::string_view string_data, std::string_view deli
 
 std::string LoadDataFileForUse (const fs::path& file_name);
 
-enum class UpOrDown { e_Down, e_Up };
+// common code to read in some JSON data and parse it out.
 
-enum class UseAdjusted { e_Yes, e_No };
+Json::Value ReadAndParseJSONFile(const fs::path &symbol_file_name);
+
+enum class UpOrDown : char { e_Down, e_Up };
+
+enum class UseAdjusted : char { e_Yes, e_No };
 
 // some basic time utilities 
 
@@ -214,7 +218,7 @@ using US_MarketTime = std::chrono::zoned_seconds;
 US_MarketTime GetUS_MarketOpenTime(const std::chrono::year_month_day& a_day);
 US_MarketTime GetUS_MarketCloseTime(const std::chrono::year_month_day& a_day);
 
-enum class US_MarketStatus { e_NotOpenYet, e_ClosedForDay, e_OpenForTrading, e_NonTradingDay};
+enum class US_MarketStatus : char { e_NotOpenYet, e_ClosedForDay, e_OpenForTrading, e_NonTradingDay};
 
 US_MarketStatus GetUS_MarketStatus(std::string_view local_time_zone_name, std::chrono::local_seconds a_time);
 
@@ -237,7 +241,7 @@ bool IsUS_MarketOpen(const std::chrono::year_month_day& a_day);
 // taking holidays into account.  the starting date is included.
 // This is useful for generating test data.
 
-std::vector<std::chrono::year_month_day> ConstructeBusinessDayList(std::chrono::year_month_day start_from, int how_many_business_days, UpOrDown order, const US_MarketHolidays* holidays=nullptr);
+std::vector<std::chrono::year_month_day> ConstructeBusinessDayList(std::chrono::year_month_day start_from, size_t how_many_business_days, UpOrDown order, const US_MarketHolidays* holidays=nullptr);
 
 // this function will generate a pair of dates which spans the specified number of business days, optionally
 // taking holidays into account.  the starting date is included.

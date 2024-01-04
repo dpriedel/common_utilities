@@ -160,11 +160,11 @@ bool IsUS_MarketOpen (const std::chrono::year_month_day& a_day)
 //                skipping holidays.
 // =====================================================================================
 
-std::vector<std::chrono::year_month_day> ConstructeBusinessDayList(std::chrono::year_month_day start_from, int how_many_business_days, UpOrDown order, const US_MarketHolidays* holidays)
+std::vector<std::chrono::year_month_day> ConstructeBusinessDayList(std::chrono::year_month_day start_from, size_t how_many_business_days, UpOrDown order, const US_MarketHolidays* holidays)
 {
     // we need to do some date arithmetic so we can use our basic 'GetTickerData' method. 
 
-    auto days = std::chrono::sys_days(start_from);
+    auto days = std::chrono::sys_days{ start_from };
 
     const std::chrono::days day_increment{order == UpOrDown::e_Up ? 1 : -1}; 
 
@@ -187,7 +187,7 @@ std::vector<std::chrono::year_month_day> ConstructeBusinessDayList(std::chrono::
             days += day_increment;
             b_day = std::chrono::weekday{days};
         }
-        business_days.push_back(days);
+        business_days.emplace_back(days);
         days += day_increment;
     }
 
@@ -233,6 +233,24 @@ std::string LoadDataFileForUse (const fs::path& file_name)
     
     return file_content;
 }		/* -----  end of function LoadDataFileForUse  ----- */
+
+Json::Value ReadAndParseJSONFile(const fs::path &file_name)
+{
+    BOOST_ASSERT_MSG(fs::exists(file_name), std::format("Unable to find JSON file: {}", file_name).c_str());
+
+    const std::string file_content = LoadDataFileForUse(file_name);
+
+    JSONCPP_STRING err;
+    Json::Value JSON_data;
+
+    Json::CharReaderBuilder builder;
+    const std::unique_ptr<Json::CharReader> reader(builder.newCharReader());
+    if (!reader->parse(file_content.data(), file_content.data() + file_content.size(), &JSON_data, &err))
+    {
+        throw std::runtime_error(std::format("Problem parsing test data file: {}", err));
+    }
+    return JSON_data;
+}  // -----  end of method ReadAndParseJSONFile  -----
 
 // helper type for the visitor function used below (from cppreference)
 //
