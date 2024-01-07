@@ -196,9 +196,9 @@ std::string LoadDataFileForUse (const fs::path& file_name);
 
 Json::Value ReadAndParseJSONFile(const fs::path &symbol_file_name);
 
-enum class UpOrDown : char { e_Down, e_Up };
+enum class UpOrDown : int32_t { e_Down, e_Up };
 
-enum class UseAdjusted : char { e_Yes, e_No };
+enum class UseAdjusted : int32_t { e_Yes, e_No };
 
 // some basic time utilities 
 
@@ -218,7 +218,7 @@ using US_MarketTime = std::chrono::zoned_seconds;
 US_MarketTime GetUS_MarketOpenTime(const std::chrono::year_month_day& a_day);
 US_MarketTime GetUS_MarketCloseTime(const std::chrono::year_month_day& a_day);
 
-enum class US_MarketStatus : char { e_NotOpenYet, e_ClosedForDay, e_OpenForTrading, e_NonTradingDay};
+enum class US_MarketStatus : int32_t { e_NotOpenYet, e_ClosedForDay, e_OpenForTrading, e_NonTradingDay};
 
 US_MarketStatus GetUS_MarketStatus(std::string_view local_time_zone_name, std::chrono::local_seconds a_time);
 
