@@ -40,6 +40,49 @@ extern "C"
     #include "calfaq.h"
 }
 
+decimal::Decimal dbl2dec(double number)
+{
+    std::array<char, 30> buf{};
+    if (auto [p, ec] = std::to_chars(buf.data(), buf.data() + buf.size() - 1, number, std::chars_format::fixed);
+            ec == std::errc())
+    {
+        // string is NOT NULL terminated
+        *p = '\0';
+    }
+    else
+    {
+        throw std::runtime_error(std::format("Problem converting double to decimal: {}\n", std::make_error_code(ec).message()));
+    }
+
+    return decimal::Decimal{buf.data()};
+}
+
+double dec2dbl (const decimal::Decimal& dec)
+{
+    // I don't see a better way to do this.
+
+    std::string temp = dec.format("f");
+    double result = {};
+    if (auto [p, ec] = std::from_chars(temp.data(), temp.data() + temp.size(), result); ec != std::errc())
+    {
+        throw std::runtime_error(std::format("Problem converting decimal to double: {}\n", std::make_error_code(ec).message()));
+    }
+    return result ;
+}
+
+// convenience function to construct a Decimal from a string view
+
+decimal::Decimal sv2dec(std::string_view text)
+{
+    constexpr size_t kBufLen = 30;
+    BOOST_ASSERT_MSG(text.size() < kBufLen, std::format("String value: {} is too long to convert to Decimal.", text).c_str());
+    std::array<char, kBufLen> buf{};
+    auto result = std::ranges::copy(text, buf.begin());
+    *result.out = '\0';
+
+    return decimal::Decimal{buf.data()};
+}
+
 // ===  FUNCTION  ======================================================================
 //         Name:  GetUS_MarketOpen
 //  Description:  

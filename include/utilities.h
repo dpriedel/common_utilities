@@ -44,48 +44,13 @@ namespace fs = std::filesystem;
 // mpdecimal does not include functions for working with floating point types
 // so provided minimal interface through character representatons as intermediaries.
 //
-inline decimal::Decimal dbl2dec(double number)
-{
-    std::array<char, 30> buf{};
-    if (auto [p, ec] = std::to_chars(buf.data(), buf.data() + buf.size() - 1, number, std::chars_format::fixed);
-            ec == std::errc())
-    {
-        // string is NOT NULL terminated
-        *p = '\0';
-    }
-    else
-    {
-        throw std::runtime_error(std::format("Problem converting double to decimal: {}\n", std::make_error_code(ec).message()));
-    }
+decimal::Decimal dbl2dec(double number);
 
-    return decimal::Decimal{buf.data()};
-}
-
-inline double dec2dbl (const decimal::Decimal& dec)
-{
-    // I don't see a better way to do this.
-
-    std::string temp = dec.format("f");
-    double result{};
-    if (auto [p, ec] = std::from_chars(temp.data(), temp.data() + temp.size(), result); ec != std::errc())
-    {
-        throw std::runtime_error(std::format("Problem converting decimal to double: {}\n", std::make_error_code(ec).message()));
-    }
-    return result ;
-}
+double dec2dbl (const decimal::Decimal& dec);
 
 // convenience function to construct a Decimal from a string view
 
-inline decimal::Decimal sv2dec(std::string_view text)
-{
-    constexpr size_t kBufLen = 30;
-    BOOST_ASSERT_MSG(text.size() < kBufLen, std::format("String value: {} is too long to convert to Decimal.", text).c_str());
-    std::array<char, kBufLen> buf{};
-    auto result = std::ranges::copy(text, buf.begin());
-    *result.out = '\0';
-
-    return decimal::Decimal{buf.data()};
-}
+decimal::Decimal sv2dec(std::string_view text);
 
 // keep our database related parms together
 
@@ -95,9 +60,9 @@ inline decimal::Decimal sv2dec(std::string_view text)
 
 struct StreamedPrices
 {
-    std::vector<int64_t> timestamp_ = {};
-    std::vector<double> price_ = {};
-    std::vector<int32_t> signal_type_ = {};
+    std::vector<int64_t> timestamp_;
+    std::vector<double> price_;
+    std::vector<int32_t> signal_type_;
 };
 
 using PF_StreamedPrices = std::map<std::string, StreamedPrices>;
