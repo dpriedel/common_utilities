@@ -477,7 +477,7 @@ US_MarketHolidays MakeHolidayList(std::chrono::year which_year)
 std::vector<StockDataRecord> ConvertJSONPriceHistory(const std::string& symbol, const Json::Value& the_data,
                                                      uint32_t how_many_days, UseAdjusted use_adjusted)
 {
-    if (!the_data.isArray() || the_data.size() == 0)
+    if (!the_data.isArray() || the_data.empty())
     {
         return {};
     }
