@@ -2,7 +2,7 @@
 //
 //       Filename:  Uniqueifier.h
 //
-//    Description:  Wrapper class to disambiguate common types 
+//    Description:  Wrapper class to disambiguate common types
 //
 //        Version:  1.0
 //        Created:  02/02/2024 02:59:28 PM
@@ -10,95 +10,127 @@
 //       License:  GNU General Public License v3
 //
 //         Author:  David P. Riedel (), driedel@cox.net
-//   Organization:  
+//   Organization:
 //
 // =====================================================================================
 
-    // thanks to Jonathan Boccara of fluentcpp.com for his articles on
-    // Strong Types and the NamedType library.
-    //
-    // this code is a simplified and somewhat stripped down version of his.
+#ifndef uniqueifier_INC
+#define uniqueifier_INC
 
-    // =====================================================================================
-    //        Class:  UniqType
-    //  Description: Provides a wrapper which makes embedded common data types distinguisable 
-    // =====================================================================================
+#include <type_traits>
 
-    template <typename T, typename Uniqueifier>
-    class UniqType
+// thanks to Jonathan Boccara of fluentcpp.com for his articles on
+// Strong Types and the NamedType library.
+//
+// this code is a simplified and somewhat stripped down version of his.
+
+// =====================================================================================
+//        Class:  UniqType
+//  Description: Provides a wrapper which makes embedded common data types distinguisable
+// =====================================================================================
+
+template <typename T, typename Uniqueifier>
+class UniqType
+{
+   public:
+    // ====================  LIFECYCLE     =======================================
+
+    UniqType()
+        requires std::is_default_constructible_v<T>
+        : value_{}
     {
-    public:
-        // ====================  LIFECYCLE     ======================================= 
+    }
 
-        UniqType() requires std::is_default_constructible_v<T>
-            : value_{} {}
+    UniqType(const UniqType<T, Uniqueifier>& rhs)
+        requires std::is_copy_constructible_v<T>
+        : value_{rhs.value_}
+    {
+    }
 
-        UniqType(const UniqType<T, Uniqueifier>& rhs) requires std::is_copy_constructible_v<T>
-            : value_{rhs.value_} {}
+    template<typename U>
+    explicit UniqType(U const& value)
+        requires std::is_constructible_v<T, U>
+        : value_{value}
+    {
+    }
 
-        explicit UniqType(T const& value) requires std::is_copy_constructible_v<T>
-            : value_{value} {}
+    explicit UniqType(T const& value)
+        requires std::is_copy_constructible_v<T>
+        : value_{value}
+    {
+    }
 
-        UniqType(UniqType<T, Uniqueifier>&& rhs) requires std::is_move_constructible_v<T>
-            : value_(std::move(rhs.value_)) {}
-        
-        explicit UniqType(T&& value) requires std::is_move_constructible_v<T>
-            : value_(std::move(value)) {}
+    UniqType(UniqType<T, Uniqueifier>&& rhs)
+        requires std::is_move_constructible_v<T>
+        : value_(std::move(rhs.value_))
+    {
+    }
 
-        // ====================  ACCESSORS     ======================================= 
+    explicit UniqType(T&& value)
+        requires std::is_move_constructible_v<T>
+        : value_(std::move(value))
+    {
+    }
 
-        // not needed because we have assignment operators
-        T& get() { return value_; }
-        const T& get() const { return value_; }
+    // ====================  ACCESSORS     =======================================
 
-        // ====================  MUTATORS      ======================================= 
+    // not needed because we have assignment operators
+    T& get() { return value_; }
+    const T& get() const { return value_; }
 
-        // ====================  OPERATORS     ======================================= 
+    // ====================  MUTATORS      =======================================
 
-        UniqType& operator=(const UniqType<T, Uniqueifier>& rhs) requires std::is_copy_assignable_v<T>
+    // ====================  OPERATORS     =======================================
+
+    UniqType& operator=(const UniqType<T, Uniqueifier>& rhs)
+        requires std::is_copy_assignable_v<T>
+    {
+        if (this != &rhs)
         {
-            if (this != &rhs)
-            {
-                value_ = rhs.value_;
-            }
-            return *this;
+            value_ = rhs.value_;
         }
-        UniqType& operator=(const T& rhs) requires std::is_copy_assignable_v<T>
+        return *this;
+    }
+    UniqType& operator=(const T& rhs)
+        requires std::is_copy_assignable_v<T>
+    {
+        if (&value_ != &rhs)
         {
-            if (&value_ != &rhs)
-            {
-                value_ = rhs;
-            }
-            return *this;
+            value_ = rhs;
         }
-        UniqType& operator=(UniqType<T, Uniqueifier>&& rhs) requires std::is_move_assignable_v<T>
+        return *this;
+    }
+    UniqType& operator=(UniqType<T, Uniqueifier>&& rhs)
+        requires std::is_move_assignable_v<T>
+    {
+        if (this != &rhs)
         {
-            if (this != &rhs)
-            {
-                value_ = std::move(rhs.value_);
-            }
-            return *this;
+            value_ = std::move(rhs.value_);
         }
-        UniqType& operator=(T&& rhs) requires std::is_move_assignable_v<T>
+        return *this;
+    }
+    UniqType& operator=(T&& rhs)
+        requires std::is_move_assignable_v<T>
+    {
+        if (&value_ != &rhs)
         {
-            if (&value_ != &rhs)
-            {
-                value_ = std::move(rhs);
-            }
-            return *this;
+            value_ = std::move(rhs);
         }
+        return *this;
+    }
 
-    protected:
-        // ====================  METHODS       ======================================= 
+   protected:
+    // ====================  METHODS       =======================================
 
-        // ====================  DATA MEMBERS  ======================================= 
+    // ====================  DATA MEMBERS  =======================================
 
-    private:
-        // ====================  METHODS       ======================================= 
+   private:
+    // ====================  METHODS       =======================================
 
-        // ====================  DATA MEMBERS  ======================================= 
-        
-        T value_;
+    // ====================  DATA MEMBERS  =======================================
 
-    }; // -----  end of class UniqType  ----- 
+    T value_;
 
+};  // -----  end of class UniqType  -----
+
+#endif  // ----- #ifndef Uniqueifier_INC  -----
