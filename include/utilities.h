@@ -59,12 +59,24 @@ decimal::Decimal sv2dec(std::string_view text);
 
 struct StreamedPrices
 {
-    std::vector<int64_t> timestamp_;
+    std::vector<int64_t> timestamp_seconds_;
     std::vector<double> price_;
     std::vector<int32_t> signal_type_;
 };
 
 using PF_StreamedPrices = std::map<std::string, StreamedPrices>;
+
+// we keep track of overall movement for streamed data --
+// the open and most recent price for each symbol.
+
+struct StreamedSummary
+{
+    double opening_price_{0.};
+    double latest_price_{0.};
+    int32_t curent_signal_type_{0};
+};
+
+using PF_StreamedSummary = std::map<std::string, StreamedSummary>;
 
 struct StockDataRecord
 {
