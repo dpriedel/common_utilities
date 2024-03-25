@@ -245,6 +245,18 @@ std::vector<StockDataRecord> ConvertJSONPriceHistory(const std::string& symbol, 
 
 // help us out for testing
 
+template <>
+struct std::formatter<decimal::Decimal> : std::formatter<std::string>
+{
+    // parse is inherited from formatter<string>.
+    auto format(const decimal::Decimal& dec, std::format_context& ctx) const
+    {
+        std::string d;
+        std::format_to(std::back_inserter(d), "{}", dec.format("f"));
+        return formatter<std::string>::format(d, ctx);
+    }
+};
+
 // custom fmtlib formatter for filesytem paths
 
 template <>
@@ -268,8 +280,8 @@ struct std::formatter<StockDataRecord> : std::formatter<std::string>
     auto format(const StockDataRecord& pdr, std::format_context& ctx) const
     {
         std::string record;
-        std::format_to(std::back_inserter(record), "{}, {}, {}, {}, {}, {}", pdr.date_, pdr.symbol_,
-                       pdr.open_.format("f"), pdr.high_.format("f"), pdr.low_.format("f"), pdr.close_.format("f"));
+        std::format_to(std::back_inserter(record), "{}, {}, {}, {}, {}, {}", pdr.date_, pdr.symbol_, pdr.open_,
+                       pdr.high_, pdr.low_, pdr.close_);
         return formatter<std::string>::format(record, ctx);
     }
 };
