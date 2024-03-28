@@ -88,6 +88,15 @@ struct StockDataRecord
     decimal::Decimal close_;
 };
 
+struct TopOfBookOpenAndLastClose
+{
+    std::string symbol_;
+    std::chrono::utc_clock::time_point time_stamp_nsecs_;
+    decimal::Decimal open_;
+    decimal::Decimal last_;
+    decimal::Decimal previous_close_;
+};
+
 struct DateCloseRecord
 {
     std::chrono::utc_clock::time_point date_;
