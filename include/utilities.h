@@ -176,7 +176,7 @@ std::string LoadDataFileForUse(const fs::path& file_name);
 
 // common code to read in some JSON data and parse it out.
 
-Json::Value ReadAndParseJSONFile(const fs::path& symbol_file_name);
+Json::Value ReadAndParsePF_ChartJSONFile(const fs::path& symbol_file_name);
 
 enum class UpOrDown : int32_t
 {

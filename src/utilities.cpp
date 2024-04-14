@@ -287,7 +287,7 @@ std::string LoadDataFileForUse(const fs::path& file_name)
     return file_content;
 } /* -----  end of function LoadDataFileForUse  ----- */
 
-Json::Value ReadAndParseJSONFile(const fs::path& file_name)
+Json::Value ReadAndParsePF_ChartJSONFile(const fs::path& file_name)
 {
     BOOST_ASSERT_MSG(fs::exists(file_name), std::format("Unable to find JSON file: {}", file_name).c_str());
 
