@@ -157,13 +157,15 @@ std::string UTCTimePointToLocalTZHMSString(std::chrono::utc_clock::time_point a_
 //  Description:
 // =====================================================================================
 
-std::chrono::utc_clock::time_point StringToUTCTimePoint(std::string_view input_format, std::string_view the_date)
+std::chrono::utc_time<std::chrono::nanoseconds> StringToUTCTimePoint(std::string_view input_format,
+                                                                     std::string_view the_date)
 {
     std::istringstream in{the_date.data()};
     date::utc_clock::time_point tp;
     date::from_stream(in, input_format.data(), tp);
     BOOST_ASSERT_MSG(!in.fail() && !in.bad(), std::format("Unable to parse given date: {}", the_date).c_str());
-    std::chrono::utc_time<std::chrono::utc_clock::duration> tp1{tp.time_since_epoch()};
+    std::chrono::utc_time<std::chrono::nanoseconds> tp1{
+        std::chrono::duration_cast<std::chrono::nanoseconds>(tp.time_since_epoch())};
     return tp1;
 }  // -----  end of method StringToDateYMD  -----
 
@@ -385,84 +387,84 @@ US_MarketHolidays MakeHolidayList(std::chrono::year which_year)
         const auto& h_name = x.first;
         const auto& h_rule = x.second;
 
-        std::visit(
-            overloaded{[which_year, &h_days, &h_name](const md& h_rule)
-                       {
-                           // these holidays can be any day of the week so adjust observed day
-                           // for Saturdays and Sundays
+        std::visit(overloaded{[which_year, &h_days, &h_name](const md& h_rule)
+                              {
+                                  // these holidays can be any day of the week so adjust observed day
+                                  // for Saturdays and Sundays
 
-                           std::chrono::sys_days hday = ymd{which_year, h_rule.month(), h_rule.day()};
-                           ymwd hwday{hday};
-                           const std::chrono::weekday which_day = hwday.weekday();
-                           if (which_day == std::chrono::Sunday)
-                           {
-                               hday += std::chrono::days{1};
-                           }
-                           else if (which_day == std::chrono::Saturday)
-                           {
-                               hday -= std::chrono::days{1};
-                           }
-                           h_days.emplace_back(US_MarketHoliday{h_name, ymd{hday}});
-                       },
-                       [which_year, &h_days, &h_name](const mwd& h_rule)
-                       {
-                           ymwd x = {which_year, h_rule.month(), h_rule.weekday_indexed()};
-                           h_days.emplace_back(US_MarketHoliday{h_name, ymd{x}});
-                       },
+                                  std::chrono::sys_days hday = ymd{which_year, h_rule.month(), h_rule.day()};
+                                  ymwd hwday{hday};
+                                  const std::chrono::weekday which_day = hwday.weekday();
+                                  if (which_day == std::chrono::Sunday)
+                                  {
+                                      hday += std::chrono::days{1};
+                                  }
+                                  else if (which_day == std::chrono::Saturday)
+                                  {
+                                      hday -= std::chrono::days{1};
+                                  }
+                                  h_days.emplace_back(US_MarketHoliday{h_name, ymd{hday}});
+                              },
+                              [which_year, &h_days, &h_name](const mwd& h_rule)
+                              {
+                                  ymwd x = {which_year, h_rule.month(), h_rule.weekday_indexed()};
+                                  h_days.emplace_back(US_MarketHoliday{h_name, ymd{x}});
+                              },
 
-                       [which_year, &h_days, &h_name](const mwdl& h_rule)
-                       {
-                           ymwdl x = {which_year, h_rule.month(), h_rule.weekday_last()};
-                           h_days.emplace_back(US_MarketHoliday{h_name, ymd{x}});
-                       },
+                              [which_year, &h_days, &h_name](const mwdl& h_rule)
+                              {
+                                  ymwdl x = {which_year, h_rule.month(), h_rule.weekday_last()};
+                                  h_days.emplace_back(US_MarketHoliday{h_name, ymd{x}});
+                              },
 
-                       [which_year, &h_days, &h_name](const NewYearsDayRule& h_rule)
-                       {
-                           // If New Years falls on a Saturday, then no holiday observed.
-                           // If on a Sunday, then Monday
-                           std::chrono::sys_days newyears = ymd{which_year, std::chrono::month{1}, std::chrono::day{1}};
-                           ymwd newyearsday{newyears};
-                           const std::chrono::weekday which_day = newyearsday.weekday();
-                           if (which_day == std::chrono::Sunday)
-                           {
-                               newyears += std::chrono::days{1};
-                           }
-                           if (which_day != std::chrono::Saturday)
-                           {
-                               h_days.emplace_back(US_MarketHoliday{h_name, ymd{newyears}});
-                           }
-                       },
-                       [which_year, &h_days, &h_name](const EasterRule& h_rule)
-                       {
-                           int month = 0;
-                           int day = 0;
-                           easter(GREGORIAN, which_year.operator int(), &month, &day);
-                           ymd easter_sunday{which_year, std::chrono::month(month), std::chrono::day(day)};
-                           std::chrono::sys_days good_friday =
-                               std::chrono::sys_days{easter_sunday} - std::chrono::days{2};
-                           h_days.emplace_back(US_MarketHoliday{h_name, ymd{good_friday}});
-                       },
-                       [which_year, &h_days, &h_name](const JuneteenthRule& h_rule)
-                       {
-                           // first use of this holiday is 2022
-                           if (which_year >= 2022y)
-                           {
-                               std::chrono::sys_days hday =
-                                   ymd{which_year, std::chrono::month(std::chrono::June), std::chrono::day(19)};
-                               ymwd hwday{hday};
-                               const std::chrono::weekday which_day = hwday.weekday();
-                               if (which_day == std::chrono::Sunday)
-                               {
-                                   hday += std::chrono::days{1};
-                               }
-                               else if (which_day == std::chrono::Saturday)
-                               {
-                                   hday -= std::chrono::days{1};
-                               }
-                               h_days.emplace_back(US_MarketHoliday{h_name, ymd{hday}});
-                           }
-                       }},
-            h_rule);
+                              [which_year, &h_days, &h_name](const NewYearsDayRule& h_rule)
+                              {
+                                  // If New Years falls on a Saturday, then no holiday observed.
+                                  // If on a Sunday, then Monday
+                                  std::chrono::sys_days newyears =
+                                      ymd{which_year, std::chrono::month{1}, std::chrono::day{1}};
+                                  ymwd newyearsday{newyears};
+                                  const std::chrono::weekday which_day = newyearsday.weekday();
+                                  if (which_day == std::chrono::Sunday)
+                                  {
+                                      newyears += std::chrono::days{1};
+                                  }
+                                  if (which_day != std::chrono::Saturday)
+                                  {
+                                      h_days.emplace_back(US_MarketHoliday{h_name, ymd{newyears}});
+                                  }
+                              },
+                              [which_year, &h_days, &h_name](const EasterRule& h_rule)
+                              {
+                                  int month = 0;
+                                  int day = 0;
+                                  easter(GREGORIAN, which_year.operator int(), &month, &day);
+                                  ymd easter_sunday{which_year, std::chrono::month(month), std::chrono::day(day)};
+                                  std::chrono::sys_days good_friday =
+                                      std::chrono::sys_days{easter_sunday} - std::chrono::days{2};
+                                  h_days.emplace_back(US_MarketHoliday{h_name, ymd{good_friday}});
+                              },
+                              [which_year, &h_days, &h_name](const JuneteenthRule& h_rule)
+                              {
+                                  // first use of this holiday is 2022
+                                  if (which_year >= 2022y)
+                                  {
+                                      std::chrono::sys_days hday =
+                                          ymd{which_year, std::chrono::month(std::chrono::June), std::chrono::day(19)};
+                                      ymwd hwday{hday};
+                                      const std::chrono::weekday which_day = hwday.weekday();
+                                      if (which_day == std::chrono::Sunday)
+                                      {
+                                          hday += std::chrono::days{1};
+                                      }
+                                      else if (which_day == std::chrono::Saturday)
+                                      {
+                                          hday -= std::chrono::days{1};
+                                      }
+                                      h_days.emplace_back(US_MarketHoliday{h_name, ymd{hday}});
+                                  }
+                              }},
+                   h_rule);
     }
 
     // last thing, add in Good Friday.

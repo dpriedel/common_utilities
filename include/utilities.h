@@ -196,7 +196,8 @@ enum class UseAdjusted : int32_t
 
 std::string UTCTimePointToLocalTZHMSString(std::chrono::utc_clock::time_point a_time_point);
 
-std::chrono::utc_clock::time_point StringToUTCTimePoint(std::string_view input_format, std::string_view the_date);
+std::chrono::utc_time<std::chrono::nanoseconds> StringToUTCTimePoint(std::string_view input_format,
+                                                                     std::string_view the_date);
 
 std::chrono::year_month_day StringToDateYMD(std::string_view input_format, std::string_view the_date);
 
