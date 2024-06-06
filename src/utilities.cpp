@@ -19,6 +19,7 @@
 #include <cstdint>
 #include <fstream>
 #include <iostream>
+#include <stacktrace>
 #include <stdexcept>
 #include <string_view>
 #include <variant>
@@ -533,6 +534,7 @@ namespace boost
 
 void assertion_failed_msg(char const* expr, char const* msg, char const* function, char const* file, int64_t line)
 {
+    std::cout << std::stacktrace::current() << std::endl;
     throw std::invalid_argument(
         std::format("\n*** Assertion failed *** test: {} in function: {} from file: {} at line: {} \nassertion msg: {}",
                     expr, function, file, line, msg));
@@ -546,6 +548,7 @@ void assertion_failed_msg(char const* expr, char const* msg, char const* functio
  */
 void assertion_failed(char const* expr, char const* function, char const* file, int64_t line)
 {
+    std::cout << std::stacktrace::current() << std::endl;
     throw std::invalid_argument(std::format(
         "\n*** Assertion failed *** test: {} in function: {} from file: {} at line: {}", expr, function, file, line));
 } /* -----  end of function assertion_failed  ----- */
