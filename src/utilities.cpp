@@ -346,9 +346,8 @@ US_MarketHolidays MakeHolidayList(std::chrono::year which_year)
 
     // here are the rules for constructing each holiday.
 
-    using HolidayRule =
-        std::pair<const std::string,
-                  std::variant<const md, const mwd, const mwdl, NewYearsDayRule, EasterRule, JuneteenthRule>>;
+    using HolidayRule = std::pair<const std::string, std::variant<const md, const mwd, const ymd, const mwdl,
+                                                                  NewYearsDayRule, EasterRule, JuneteenthRule>>;
     using HolidayRuleList = std::vector<HolidayRule>;
 
     // with gcc 12, the below will become 'constexpr'
@@ -369,9 +368,13 @@ US_MarketHolidays MakeHolidayList(std::chrono::year which_year)
         "Thanksgiving Day", mwd{std::chrono::November, std::chrono::weekday_indexed{std::chrono::Thursday, 4}});
     static const HolidayRule Christmas = std::make_pair("Christmas Day", md{std::chrono::December, 25d});
 
+    // special case logic
+
+    static const HolidayRule CartersDay = std::make_pair("Carter Memorial", ymd{2025y, std::chrono::January, 9d});
+
     static const HolidayRuleList holiday_rules = {NewYears,     MLKDay,     WashingtonBday,  GoodFriday,
                                                   MemorialDay,  Juneteenth, IndependenceDay, LaborDay,
-                                                  Thanksgiving, Christmas};
+                                                  Thanksgiving, Christmas,  CartersDay};
 
     //    static const std::vector<ymd> GoodFridays = {{2022_y, std::chrono::April, 15_d}, {2023_y, std::chrono::April,
     //    7_d}, {2024_y, std::chrono::March, 29_d},
@@ -410,6 +413,16 @@ US_MarketHolidays MakeHolidayList(std::chrono::year which_year)
                               {
                                   ymwd x = {which_year, h_rule.month(), h_rule.weekday_indexed()};
                                   h_days.emplace_back(US_MarketHoliday{h_name, ymd{x}});
+                              },
+
+                              [which_year, &h_days, &h_name](const ymd& h_rule)
+                              {
+                                  //  since this rule type specifies a complete date, we only
+                                  //  need to add it to the list if the specified year matches.
+                                  if (which_year == h_rule.year())
+                                  {
+                                      h_days.emplace_back(US_MarketHoliday{h_name, h_rule});
+                                  }
                               },
 
                               [which_year, &h_days, &h_name](const mwdl& h_rule)
