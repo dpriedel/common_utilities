@@ -25,10 +25,6 @@
 #include <variant>
 #include <vector>
 
-#include <date/date.h>  // for from_stream
-// #include <date/chrono_io.h>
-#include <date/tz.h>
-
 using namespace std::chrono_literals;
 
 namespace rng = std::ranges;
@@ -58,7 +54,7 @@ decimal::Decimal dbl2dec(double number)
     return decimal::Decimal{buf.data()};
 }
 
-double dec2dbl(const decimal::Decimal& dec)
+double dec2dbl(const decimal::Decimal &dec)
 {
     // I don't see a better way to do this.
 
@@ -90,19 +86,19 @@ decimal::Decimal sv2dec(std::string_view text)
 //         Name:  GetUS_MarketOpen
 //  Description:
 // =====================================================================================
-US_MarketTime GetUS_MarketOpenTime(const std::chrono::year_month_day& a_day)
+US_MarketTime GetUS_MarketOpenTime(const std::chrono::year_month_day &a_day)
 {
     return std::chrono::zoned_seconds("America/New_York", std::chrono::local_days{a_day} + 9h + 30min + 0s);
-}  // -----  end of function GetUS_MarketOpen  -----
+} // -----  end of function GetUS_MarketOpen  -----
 
 // ===  FUNCTION  ======================================================================
 //         Name:  GetUS_MarketClose
 //  Description:
 // =====================================================================================
-US_MarketTime GetUS_MarketCloseTime(const std::chrono::year_month_day& a_day)
+US_MarketTime GetUS_MarketCloseTime(const std::chrono::year_month_day &a_day)
 {
     return std::chrono::zoned_seconds{"America/New_York", std::chrono::local_days{a_day} + 16h + 0min + 0s};
-}  // -----  end of function GetUS_MarketClose  -----
+} // -----  end of function GetUS_MarketClose  -----
 
 // ===  FUNCTION  ======================================================================
 //         Name:  GetUS_MarketStatus
@@ -142,16 +138,16 @@ US_MarketStatus GetUS_MarketStatus(std::string_view local_time_zone_name, std::c
         return US_MarketStatus::e_ClosedForDay;
     }
     return US_MarketStatus::e_OpenForTrading;
-}  // -----  end of function GetUS_MarketStatus  -----
+} // -----  end of function GetUS_MarketStatus  -----
 
 std::string UTCTimePointToLocalTZHMSString(std::chrono::utc_clock::time_point a_time_point)
 {
-    auto t =
-        date::zoned_time(std::chrono::current_zone(),
-                         floor<std::chrono::seconds>(std::chrono::clock_cast<std::chrono::system_clock>(a_time_point)));
-    std::string result = date::format("%H:%M:%S", t);
+    auto t = std::chrono::zoned_time(
+        std::chrono::current_zone(),
+        floor<std::chrono::seconds>(std::chrono::clock_cast<std::chrono::system_clock>(a_time_point)));
+    std::string result = std::format("%H:%M:%S", t);
     return result;
-}  // -----  end of function UTCTimePointToLocalTZHMSString  -----
+} // -----  end of function UTCTimePointToLocalTZHMSString  -----
 
 // ===  FUNCTION  ======================================================================
 //         Name:  StringToTimePoint
@@ -162,13 +158,13 @@ std::chrono::utc_time<std::chrono::nanoseconds> StringToUTCTimePoint(std::string
                                                                      std::string_view the_date)
 {
     std::istringstream in{the_date.data()};
-    date::utc_clock::time_point tp;
-    date::from_stream(in, input_format.data(), tp);
+    std::chrono::utc_clock::time_point tp;
+    std::chrono::from_stream(in, input_format.data(), tp);
     BOOST_ASSERT_MSG(!in.fail() && !in.bad(), std::format("Unable to parse given date: {}", the_date).c_str());
     std::chrono::utc_time<std::chrono::nanoseconds> tp1{
         std::chrono::duration_cast<std::chrono::nanoseconds>(tp.time_since_epoch())};
     return tp1;
-}  // -----  end of method StringToDateYMD  -----
+} // -----  end of method StringToDateYMD  -----
 
 // ===  FUNCTION  ======================================================================
 //         Name:  StringToDateYMD
@@ -178,20 +174,20 @@ std::chrono::utc_time<std::chrono::nanoseconds> StringToUTCTimePoint(std::string
 std::chrono::year_month_day StringToDateYMD(std::string_view input_format, std::string_view the_date)
 {
     std::istringstream in{the_date.data()};
-    date::year_month_day result{};
-    date::from_stream(in, input_format.data(), result);
+    std::chrono::year_month_day result{};
+    std::chrono::from_stream(in, input_format.data(), result);
     BOOST_ASSERT_MSG(!in.fail() && !in.bad(), std::format("Unable to parse given date: {}", the_date).c_str());
     std::chrono::year_month_day result1(std::chrono::year{result.year().operator int()},
                                         std::chrono::month{result.month().operator unsigned()},
                                         std::chrono::day{result.day().operator unsigned()});
     return result1;
-}  // -----  end of method StringToDateYMD  -----
+} // -----  end of method StringToDateYMD  -----
 
 // ===  FUNCTION  ======================================================================
 //         Name:  IsUS_MarketOpen
 //  Description:
 // =====================================================================================
-bool IsUS_MarketOpen(const std::chrono::year_month_day& a_day)
+bool IsUS_MarketOpen(const std::chrono::year_month_day &a_day)
 {
     // look for holidays and weekends
     // start with weekends
@@ -203,8 +199,8 @@ bool IsUS_MarketOpen(const std::chrono::year_month_day& a_day)
     }
 
     auto holidays = MakeHolidayList(a_day.year());
-    return rng::find(holidays, a_day, [](const auto& e) { return e.second; }) == holidays.end();
-}  // -----  end of function IsUS_MarketOpen  -----
+    return rng::find(holidays, a_day, [](const auto &e) { return e.second; }) == holidays.end();
+} // -----  end of function IsUS_MarketOpen  -----
 
 // ===  FUNCTION  ======================================================================
 //         Name:  ConstructeBusinessDayList
@@ -214,7 +210,7 @@ bool IsUS_MarketOpen(const std::chrono::year_month_day& a_day)
 
 std::vector<std::chrono::year_month_day> ConstructeBusinessDayList(std::chrono::year_month_day start_from,
                                                                    size_t how_many_business_days, UpOrDown order,
-                                                                   const US_MarketHolidays* holidays)
+                                                                   const US_MarketHolidays *holidays)
 {
     // we need to do some date arithmetic so we can use our basic 'GetTickerData' method.
 
@@ -224,13 +220,12 @@ std::vector<std::chrono::year_month_day> ConstructeBusinessDayList(std::chrono::
 
     std::vector<std::chrono::year_month_day> business_days;
 
-    auto IsHoliday = [holidays](const std::chrono::year_month_day& a_day)
-    {
+    auto IsHoliday = [holidays](const std::chrono::year_month_day &a_day) {
         if (holidays == nullptr)
         {
             return false;
         }
-        return rng::find(*holidays, a_day, [](const auto& e) { return e.second; }) != holidays->end();
+        return rng::find(*holidays, a_day, [](const auto &e) { return e.second; }) != holidays->end();
     };
 
     while (business_days.size() < how_many_business_days)
@@ -248,7 +243,7 @@ std::vector<std::chrono::year_month_day> ConstructeBusinessDayList(std::chrono::
     //    ranges::for_each(business_days, [](const auto& e) { std::cout << e << '\n'; });
     //    std::cout << "how many: " << business_days.size() << '\n';
     return business_days;
-}  // -----  end of function ConstructeBusinessDayList  -----
+} // -----  end of function ConstructeBusinessDayList  -----
 
 // ===  FUNCTION  ======================================================================
 //         Name:  ConstructeBusinessDayRange
@@ -258,7 +253,7 @@ std::vector<std::chrono::year_month_day> ConstructeBusinessDayList(std::chrono::
 
 std::pair<std::chrono::year_month_day, std::chrono::year_month_day> ConstructeBusinessDayRange(
     std::chrono::year_month_day start_from, int how_many_business_days, UpOrDown order,
-    const US_MarketHolidays* holidays)
+    const US_MarketHolidays *holidays)
 {
     // we need to do some date arithmetic so we can use our basic 'GetTickerData' method.
 
@@ -269,7 +264,7 @@ std::pair<std::chrono::year_month_day, std::chrono::year_month_day> ConstructeBu
     auto business_days = ConstructeBusinessDayList(start_from, how_many_business_days, order, holidays);
 
     return {business_days.front(), business_days.back()};
-}  // -----  end of function ConstructeBusinessDayRange  -----
+} // -----  end of function ConstructeBusinessDayRange  -----
 
 /*
  * ===  FUNCTION  ======================================================================
@@ -277,9 +272,9 @@ std::pair<std::chrono::year_month_day, std::chrono::year_month_day> ConstructeBu
  *  Description:
  * =====================================================================================
  */
-std::string LoadDataFileForUse(const fs::path& file_name)
+std::string LoadDataFileForUse(const fs::path &file_name)
 {
-    std::string file_content;  // make room for trailing null
+    std::string file_content; // make room for trailing null
     file_content.reserve(fs::file_size(file_name) + 1);
     std::ifstream input_file{file_name, std::ios_base::in | std::ios_base::binary};
     BOOST_ASSERT_MSG(input_file.is_open(), std::format("Can't open data file: {}.", file_name).c_str());
@@ -290,7 +285,7 @@ std::string LoadDataFileForUse(const fs::path& file_name)
     return file_content;
 } /* -----  end of function LoadDataFileForUse  ----- */
 
-Json::Value ReadAndParsePF_ChartJSONFile(const fs::path& file_name)
+Json::Value ReadAndParsePF_ChartJSONFile(const fs::path &file_name)
 {
     BOOST_ASSERT_MSG(fs::exists(file_name), std::format("Unable to find JSON file: {}", file_name).c_str());
 
@@ -306,12 +301,11 @@ Json::Value ReadAndParsePF_ChartJSONFile(const fs::path& file_name)
         throw std::runtime_error(std::format("Problem parsing test data file: {}", err));
     }
     return JSON_data;
-}  // -----  end of method ReadAndParseJSONFile  -----
+} // -----  end of method ReadAndParseJSONFile  -----
 
 // helper type for the visitor function used below (from cppreference)
 //
-template <class... Ts>
-struct overloaded : Ts...
+template <class... Ts> struct overloaded : Ts...
 {
     using Ts::operator()...;
 };
@@ -336,13 +330,13 @@ US_MarketHolidays MakeHolidayList(std::chrono::year which_year)
 
     struct NewYearsDayRule
     {
-    };  // New Years day does not fall back to previous year.
+    }; // New Years day does not fall back to previous year.
     struct EasterRule
     {
-    };  // use this to trigger computation needed to find Good Friday.
+    }; // use this to trigger computation needed to find Good Friday.
     struct JuneteenthRule
     {
-    };  // use this to trigger computation needed to find Good Friday.
+    }; // use this to trigger computation needed to find Good Friday.
 
     // here are the rules for constructing each holiday.
 
@@ -386,13 +380,12 @@ US_MarketHolidays MakeHolidayList(std::chrono::year which_year)
 
     // NOTE: for Good Friday, first calculate Easter then back up 2 days.
 
-    for (const auto& x : holiday_rules)
+    for (const auto &x : holiday_rules)
     {
-        const auto& h_name = x.first;
-        const auto& h_rule = x.second;
+        const auto &h_name = x.first;
+        const auto &h_rule = x.second;
 
-        std::visit(overloaded{[which_year, &h_days, &h_name](const md& h_rule)
-                              {
+        std::visit(overloaded{[which_year, &h_days, &h_name](const md &h_rule) {
                                   // these holidays can be any day of the week so adjust observed day
                                   // for Saturdays and Sundays
 
@@ -409,14 +402,12 @@ US_MarketHolidays MakeHolidayList(std::chrono::year which_year)
                                   }
                                   h_days.emplace_back(US_MarketHoliday{h_name, ymd{hday}});
                               },
-                              [which_year, &h_days, &h_name](const mwd& h_rule)
-                              {
+                              [which_year, &h_days, &h_name](const mwd &h_rule) {
                                   ymwd x = {which_year, h_rule.month(), h_rule.weekday_indexed()};
                                   h_days.emplace_back(US_MarketHoliday{h_name, ymd{x}});
                               },
 
-                              [which_year, &h_days, &h_name](const ymd& h_rule)
-                              {
+                              [which_year, &h_days, &h_name](const ymd &h_rule) {
                                   //  since this rule type specifies a complete date, we only
                                   //  need to add it to the list if the specified year matches.
                                   if (which_year == h_rule.year())
@@ -425,14 +416,12 @@ US_MarketHolidays MakeHolidayList(std::chrono::year which_year)
                                   }
                               },
 
-                              [which_year, &h_days, &h_name](const mwdl& h_rule)
-                              {
+                              [which_year, &h_days, &h_name](const mwdl &h_rule) {
                                   ymwdl x = {which_year, h_rule.month(), h_rule.weekday_last()};
                                   h_days.emplace_back(US_MarketHoliday{h_name, ymd{x}});
                               },
 
-                              [which_year, &h_days, &h_name](const NewYearsDayRule& h_rule)
-                              {
+                              [which_year, &h_days, &h_name](const NewYearsDayRule &h_rule) {
                                   // If New Years falls on a Saturday, then no holiday observed.
                                   // If on a Sunday, then Monday
                                   std::chrono::sys_days newyears =
@@ -448,8 +437,7 @@ US_MarketHolidays MakeHolidayList(std::chrono::year which_year)
                                       h_days.emplace_back(US_MarketHoliday{h_name, ymd{newyears}});
                                   }
                               },
-                              [which_year, &h_days, &h_name](const EasterRule& h_rule)
-                              {
+                              [which_year, &h_days, &h_name](const EasterRule &h_rule) {
                                   int month = 0;
                                   int day = 0;
                                   easter(GREGORIAN, which_year.operator int(), &month, &day);
@@ -458,8 +446,7 @@ US_MarketHolidays MakeHolidayList(std::chrono::year which_year)
                                       std::chrono::sys_days{easter_sunday} - std::chrono::days{2};
                                   h_days.emplace_back(US_MarketHoliday{h_name, ymd{good_friday}});
                               },
-                              [which_year, &h_days, &h_name](const JuneteenthRule& h_rule)
-                              {
+                              [which_year, &h_days, &h_name](const JuneteenthRule &h_rule) {
                                   // first use of this holiday is 2022
                                   if (which_year >= 2022y)
                                   {
@@ -483,14 +470,14 @@ US_MarketHolidays MakeHolidayList(std::chrono::year which_year)
 
     // last thing, add in Good Friday.
     return h_days;
-}  // -----  end of function MakeHolidayList  -----
+} // -----  end of function MakeHolidayList  -----
 
 // ===  FUNCTION  ======================================================================
 //         Name:  ConvertJSONPriceHistory
 //         Description:  Expects the input data is in descending order by date
 // =====================================================================================
 
-std::vector<StockDataRecord> ConvertJSONPriceHistory(const std::string& symbol, const Json::Value& the_data,
+std::vector<StockDataRecord> ConvertJSONPriceHistory(const std::string &symbol, const Json::Value &the_data,
                                                      uint32_t how_many_days, UseAdjusted use_adjusted)
 {
     if (!the_data.isArray() || the_data.empty())
@@ -530,7 +517,7 @@ std::vector<StockDataRecord> ConvertJSONPriceHistory(const std::string& symbol, 
         }
     }
     return history;
-}  // -----  end of function ConvertJSONPriceHistory  -----
+} // -----  end of function ConvertJSONPriceHistory  -----
 
 namespace boost
 {
@@ -545,9 +532,12 @@ namespace boost
  * =====================================================================================
  */
 
-void assertion_failed_msg(char const* expr, char const* msg, char const* function, char const* file, int64_t line)
+void assertion_failed_msg(char const *expr, char const *msg, char const *function, char const *file, int64_t line)
 {
+#ifdef SHOW_STRACE
     std::cout << std::stacktrace::current() << std::endl;
+#endif
+
     throw std::invalid_argument(
         std::format("\n*** Assertion failed *** test: {} in function: {} from file: {} at line: {} \nassertion msg: {}",
                     expr, function, file, line, msg));
@@ -559,9 +549,12 @@ void assertion_failed_msg(char const* expr, char const* msg, char const* functio
  *  Description:
  * =====================================================================================
  */
-void assertion_failed(char const* expr, char const* function, char const* file, int64_t line)
+void assertion_failed(char const *expr, char const *function, char const *file, int64_t line)
 {
+#ifdef SHOW_STRACE
     std::cout << std::stacktrace::current() << std::endl;
+#endif
+
     throw std::invalid_argument(std::format(
         "\n*** Assertion failed *** test: {} in function: {} from file: {} at line: {}", expr, function, file, line));
 } /* -----  end of function assertion_failed  ----- */

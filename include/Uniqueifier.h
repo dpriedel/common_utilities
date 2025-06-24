@@ -29,10 +29,9 @@
 //  Description: Provides a wrapper which makes embedded common data types distinguisable
 // =====================================================================================
 
-template <typename T, typename Uniqueifier>
-class UniqType
+template <typename T, typename Uniqueifier> class UniqType
 {
-   public:
+public:
     // ====================  LIFECYCLE     =======================================
 
     UniqType()
@@ -41,32 +40,32 @@ class UniqType
     {
     }
 
-    UniqType(const UniqType<T, Uniqueifier>& rhs)
+    UniqType(const UniqType<T, Uniqueifier> &rhs)
         requires std::is_copy_constructible_v<T>
         : value_{rhs.value_}
     {
     }
 
-    template<typename U>
-    explicit UniqType(U const& value)
+    template <typename U>
+    explicit UniqType(U const &value)
         requires std::is_constructible_v<T, U>
         : value_{value}
     {
     }
 
-    explicit UniqType(T const& value)
+    explicit UniqType(T const &value)
         requires std::is_copy_constructible_v<T>
         : value_{value}
     {
     }
 
-    UniqType(UniqType<T, Uniqueifier>&& rhs)
+    UniqType(UniqType<T, Uniqueifier> &&rhs)
         requires std::is_move_constructible_v<T>
         : value_(std::move(rhs.value_))
     {
     }
 
-    explicit UniqType(T&& value)
+    explicit UniqType(T &&value)
         requires std::is_move_constructible_v<T>
         : value_(std::move(value))
     {
@@ -75,14 +74,20 @@ class UniqType
     // ====================  ACCESSORS     =======================================
 
     // not needed because we have assignment operators
-    T& get() { return value_; }
-    const T& get() const { return value_; }
+    T &get()
+    {
+        return value_;
+    }
+    const T &get() const
+    {
+        return value_;
+    }
 
     // ====================  MUTATORS      =======================================
 
     // ====================  OPERATORS     =======================================
 
-    UniqType& operator=(const UniqType<T, Uniqueifier>& rhs)
+    UniqType &operator=(const UniqType<T, Uniqueifier> &rhs)
         requires std::is_copy_assignable_v<T>
     {
         if (this != &rhs)
@@ -91,7 +96,7 @@ class UniqType
         }
         return *this;
     }
-    UniqType& operator=(const T& rhs)
+    UniqType &operator=(const T &rhs)
         requires std::is_copy_assignable_v<T>
     {
         if (&value_ != &rhs)
@@ -100,7 +105,7 @@ class UniqType
         }
         return *this;
     }
-    UniqType& operator=(UniqType<T, Uniqueifier>&& rhs)
+    UniqType &operator=(UniqType<T, Uniqueifier> &&rhs)
         requires std::is_move_assignable_v<T>
     {
         if (this != &rhs)
@@ -109,7 +114,7 @@ class UniqType
         }
         return *this;
     }
-    UniqType& operator=(T&& rhs)
+    UniqType &operator=(T &&rhs)
         requires std::is_move_assignable_v<T>
     {
         if (&value_ != &rhs)
@@ -119,18 +124,18 @@ class UniqType
         return *this;
     }
 
-   protected:
+protected:
     // ====================  METHODS       =======================================
 
     // ====================  DATA MEMBERS  =======================================
 
-   private:
+private:
     // ====================  METHODS       =======================================
 
     // ====================  DATA MEMBERS  =======================================
 
     T value_;
 
-};  // -----  end of class UniqType  -----
+}; // -----  end of class UniqType  -----
 
-#endif  // ----- #ifndef Uniqueifier_INC  -----
+#endif // ----- #ifndef Uniqueifier_INC  -----

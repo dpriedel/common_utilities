@@ -45,7 +45,7 @@ namespace fs = std::filesystem;
 //
 decimal::Decimal dbl2dec(double number);
 
-double dec2dbl(const decimal::Decimal& dec);
+double dec2dbl(const decimal::Decimal &dec);
 
 // convenience function to construct a Decimal from a string view
 
@@ -115,15 +115,17 @@ struct MultiSymbolDateCloseRecord
 
 struct line_only_whitespace : std::ctype<char>
 {
-    static const mask* make_table()
+    static const mask *make_table()
     {
         // make a copy of the "C" locale table
         static std::vector<mask> v(classic_table(), classic_table() + table_size);
-        v['\t'] &= ~space;  // tab will not be classified as whitespace
-        v[' '] &= ~space;   // space will not be classified as whitespace
+        v['\t'] &= ~space; // tab will not be classified as whitespace
+        v[' '] &= ~space;  // space will not be classified as whitespace
         return v.data();
     }
-    explicit line_only_whitespace(std::size_t refs = 0) : ctype(make_table(), false, refs) {}
+    explicit line_only_whitespace(std::size_t refs = 0) : ctype(make_table(), false, refs)
+    {
+    }
 };
 
 //  let's do a little 'template normal' programming again
@@ -165,18 +167,18 @@ inline auto rng_split_string(std::string_view string_data, std::string_view deli
     namespace vws = std::ranges::views;
 
     auto splitter = vws::split(string_data, delim) |
-                    vws::transform([](auto&& item_rng) { return T(item_rng.begin(), item_rng.end()); });
+                    vws::transform([](auto &&item_rng) { return T(item_rng.begin(), item_rng.end()); });
 
     return splitter;
 }
 
 // a (hopefully) efficient way to read an entire file into a string.  Does a binary read.
 
-std::string LoadDataFileForUse(const fs::path& file_name);
+std::string LoadDataFileForUse(const fs::path &file_name);
 
 // common code to read in some JSON data and parse it out.
 
-Json::Value ReadAndParsePF_ChartJSONFile(const fs::path& symbol_file_name);
+Json::Value ReadAndParsePF_ChartJSONFile(const fs::path &symbol_file_name);
 
 enum class UpOrDown : int32_t
 {
@@ -205,8 +207,8 @@ std::chrono::year_month_day StringToDateYMD(std::string_view input_format, std::
 
 using US_MarketTime = std::chrono::zoned_seconds;
 
-US_MarketTime GetUS_MarketOpenTime(const std::chrono::year_month_day& a_day);
-US_MarketTime GetUS_MarketCloseTime(const std::chrono::year_month_day& a_day);
+US_MarketTime GetUS_MarketOpenTime(const std::chrono::year_month_day &a_day);
+US_MarketTime GetUS_MarketCloseTime(const std::chrono::year_month_day &a_day);
 
 enum class US_MarketStatus : int32_t
 {
@@ -231,7 +233,7 @@ US_MarketHolidays MakeHolidayList(std::chrono::year which_year);
 
 // see if the US Stock market is open on the given day.
 
-bool IsUS_MarketOpen(const std::chrono::year_month_day& a_day);
+bool IsUS_MarketOpen(const std::chrono::year_month_day &a_day);
 
 // this function will generate a list of dates which spans the specified number of business days, optionally
 // taking holidays into account.  the starting date is included.
@@ -239,27 +241,26 @@ bool IsUS_MarketOpen(const std::chrono::year_month_day& a_day);
 
 std::vector<std::chrono::year_month_day> ConstructeBusinessDayList(std::chrono::year_month_day start_from,
                                                                    size_t how_many_business_days, UpOrDown order,
-                                                                   const US_MarketHolidays* holidays = nullptr);
+                                                                   const US_MarketHolidays *holidays = nullptr);
 
 // this function will generate a pair of dates which spans the specified number of business days, optionally
 // taking holidays into account.  the starting date is included.
 
 std::pair<std::chrono::year_month_day, std::chrono::year_month_day> ConstructeBusinessDayRange(
     std::chrono::year_month_day start_from, int how_many_business_days, UpOrDown order,
-    const US_MarketHolidays* holidays = nullptr);
+    const US_MarketHolidays *holidays = nullptr);
 
 // bridge between Tiingo price history data and DB price history data
 
-std::vector<StockDataRecord> ConvertJSONPriceHistory(const std::string& symbol, const Json::Value& the_data,
+std::vector<StockDataRecord> ConvertJSONPriceHistory(const std::string &symbol, const Json::Value &the_data,
                                                      uint32_t how_many_days, UseAdjusted use_adjusted);
 
 // help us out for testing
 
-template <>
-struct std::formatter<decimal::Decimal> : std::formatter<std::string>
+template <> struct std::formatter<decimal::Decimal> : std::formatter<std::string>
 {
     // parse is inherited from formatter<string>.
-    auto format(const decimal::Decimal& dec, std::format_context& ctx) const
+    auto format(const decimal::Decimal &dec, std::format_context &ctx) const
     {
         std::string d;
         std::format_to(std::back_inserter(d), "{}", dec.format("f"));
@@ -269,11 +270,10 @@ struct std::formatter<decimal::Decimal> : std::formatter<std::string>
 
 // custom fmtlib formatter for filesytem paths
 
-template <>
-struct std::formatter<std::filesystem::path> : std::formatter<std::string>
+template <> struct std::formatter<std::filesystem::path> : std::formatter<std::string>
 {
     // parse is inherited from formatter<string>.
-    auto format(const std::filesystem::path& p, std::format_context& ctx) const
+    auto format(const std::filesystem::path &p, std::format_context &ctx) const
     {
         std::string f_name;
         std::format_to(std::back_inserter(f_name), "{}", p.string());
@@ -283,11 +283,10 @@ struct std::formatter<std::filesystem::path> : std::formatter<std::string>
 
 // custom formatter for PriceDataRecord
 
-template <>
-struct std::formatter<StockDataRecord> : std::formatter<std::string>
+template <> struct std::formatter<StockDataRecord> : std::formatter<std::string>
 {
     // parse is inherited from formatter<string>.
-    auto format(const StockDataRecord& pdr, std::format_context& ctx) const
+    auto format(const StockDataRecord &pdr, std::format_context &ctx) const
     {
         std::string record;
         std::format_to(std::back_inserter(record), "{}, {}, {}, {}, {}, {}", pdr.date_, pdr.symbol_, pdr.open_,
@@ -296,13 +295,12 @@ struct std::formatter<StockDataRecord> : std::formatter<std::string>
     }
 };
 
-// custom fmtlib formatter for US market status.
+// custom formatter for US market status.
 
-template <>
-struct std::formatter<US_MarketStatus> : std::formatter<std::string>
+template <> struct std::formatter<US_MarketStatus> : std::formatter<std::string>
 {
     // parse is inherited from formatter<string>.
-    auto format(US_MarketStatus status, std::format_context& ctx) const
+    auto format(US_MarketStatus status, std::format_context &ctx) const
     {
         std::string s;
         switch (status)
@@ -328,11 +326,11 @@ struct std::formatter<US_MarketStatus> : std::formatter<std::string>
     }
 };
 
-inline std::ostream& operator<<(std::ostream& os, US_MarketStatus status)
+inline std::ostream &operator<<(std::ostream &os, US_MarketStatus status)
 {
     std::format_to(std::ostream_iterator<char>{os}, "{}", status);
 
     return os;
 }
 
-#endif  // ----- #ifndef _UTILITIES_INC_  -----
+#endif // ----- #ifndef _UTILITIES_INC_  -----
