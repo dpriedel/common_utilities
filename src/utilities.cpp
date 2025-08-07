@@ -145,7 +145,7 @@ std::string UTCTimePointToLocalTZHMSString(std::chrono::utc_clock::time_point a_
     auto t = std::chrono::zoned_time(
         std::chrono::current_zone(),
         floor<std::chrono::seconds>(std::chrono::clock_cast<std::chrono::system_clock>(a_time_point)));
-    std::string result = std::format("%H:%M:%S", t);
+    std::string result = std::format("{:%H:%M:%S}", t);
     return result;
 } // -----  end of function UTCTimePointToLocalTZHMSString  -----
 
@@ -336,7 +336,7 @@ US_MarketHolidays MakeHolidayList(std::chrono::year which_year)
     }; // use this to trigger computation needed to find Good Friday.
     struct JuneteenthRule
     {
-    }; // use this to trigger computation needed to find Good Friday.
+    };
 
     // here are the rules for constructing each holiday.
 
