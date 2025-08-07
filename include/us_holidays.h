@@ -18,132 +18,97 @@
 #ifndef US_HOLIDAYS_H_
 #define US_HOLIDAYS_H_
 
-#endif /* US_HOLIDAYS_H_ */
-// include/us_holidays.h
-#ifndef US_HOLIDAYS_H
-#define US_HOLIDAYS_H
-
 #include <chrono>
 #include <optional>
 #include <string>
 #include <variant>
 #include <vector>
 
+using namespace std::chrono_literals;
+using namespace std::literals;
+
 // Type definition for a single US Market Holiday
 using US_MarketHoliday = std::pair<const std::string, const std::chrono::year_month_day>;
 // Type definition for a list of US Market Holidays
 using US_MarketHolidays = std::vector<US_MarketHoliday>;
 
-// These small tag structs are used as "rules" for specific holiday calculations
-// when a simple chrono type like month_day or month_weekday isn't sufficient.
-struct NewYearsDayRuleTag
-{
-};
-struct EasterRuleTag
-{
-};
-struct JuneteenthRuleTag
-{
-};
-
 // --- Individual Holiday Rule Structs ---
 
 struct NewYearsHoliday
 {
-    std::string holiday_name_;
-    NewYearsDayRuleTag holiday_rule_;
-
-    NewYearsHoliday(std::string name, NewYearsDayRuleTag rule_tag);
+    static constexpr char holiday_name_[] = "New Years";
+    static constexpr std::chrono::month_day holiday_rule_ = std::chrono::January / 1d;
     std::optional<US_MarketHoliday> operator()(std::chrono::year which_year) const;
 };
 
 struct MLKDayHoliday
 {
-    std::string holiday_name_;
-    std::chrono::month_weekday holiday_rule_;
-
-    MLKDayHoliday(std::string name, std::chrono::month_weekday rule);
+    static constexpr char holiday_name_[] = "Martin Luther King Day";
+    static constexpr std::chrono::month_weekday holiday_rule_ = std::chrono::January / std::chrono::Monday[3];
     std::optional<US_MarketHoliday> operator()(std::chrono::year which_year) const;
 };
 
 struct WashingtonBdayHoliday
 {
-    std::string holiday_name_;
-    std::chrono::month_weekday holiday_rule_;
-
-    WashingtonBdayHoliday(std::string name, std::chrono::month_weekday rule);
+    static constexpr char holiday_name_[] = "Presidents Day";
+    static constexpr std::chrono::month_weekday holiday_rule_ = std::chrono::February / std::chrono::Monday[3];
     std::optional<US_MarketHoliday> operator()(std::chrono::year which_year) const;
 };
 
 struct GoodFridayHoliday
 {
-    std::string holiday_name_;
-    EasterRuleTag holiday_rule_;
-
-    GoodFridayHoliday(std::string name, EasterRuleTag rule_tag);
+    static constexpr char holiday_name_[] = "Good Friday";
+    static constexpr std::chrono::month_day holiday_rule_ = {};
     std::optional<US_MarketHoliday> operator()(std::chrono::year which_year) const;
 };
 
 struct MemorialDayHoliday
 {
-    std::string holiday_name_;
-    std::chrono::month_weekday_last holiday_rule_;
-
-    MemorialDayHoliday(std::string name, std::chrono::month_weekday_last rule);
+    static constexpr char holiday_name_[] = "Memorial Day";
+    static constexpr std::chrono::month_weekday_last holiday_rule_ =
+        std::chrono::May / std::chrono::Monday[std::chrono::last];
     std::optional<US_MarketHoliday> operator()(std::chrono::year which_year) const;
 };
 
 struct JuneteenthHoliday
 {
-    std::string holiday_name_;
-    JuneteenthRuleTag holiday_rule_;
-
-    JuneteenthHoliday(std::string name, JuneteenthRuleTag rule_tag);
+    static constexpr char holiday_name_[] = "Juneteenth";
+    static constexpr std::chrono::month_day holiday_rule_ = std::chrono::June / 19d;
     std::optional<US_MarketHoliday> operator()(std::chrono::year which_year) const;
 };
 
 struct IndependenceDayHoliday
 {
-    std::string holiday_name_;
-    std::chrono::month_day holiday_rule_;
-
-    IndependenceDayHoliday(std::string name, std::chrono::month_day rule);
+    static constexpr char holiday_name_[] = "Independence Day";
+    static constexpr std::chrono::month_day holiday_rule_ = std::chrono::July / 4d;
     std::optional<US_MarketHoliday> operator()(std::chrono::year which_year) const;
 };
 
 struct LaborDayHoliday
 {
-    std::string holiday_name_;
-    std::chrono::month_weekday holiday_rule_;
-
-    LaborDayHoliday(std::string name, std::chrono::month_weekday rule);
+    static constexpr char holiday_name_[] = "Labor Day";
+    static constexpr std::chrono::month_weekday holiday_rule_ = std::chrono::September / std::chrono::Monday[1];
     std::optional<US_MarketHoliday> operator()(std::chrono::year which_year) const;
 };
 
 struct ThanksgivingHoliday
 {
-    std::string holiday_name_;
-    std::chrono::month_weekday holiday_rule_;
-
-    ThanksgivingHoliday(std::string name, std::chrono::month_weekday rule);
+    static constexpr char holiday_name_[] = "Thanksgiving Day";
+    static constexpr std::chrono::month_weekday holiday_rule_ = std::chrono::November / std::chrono::Thursday[4];
     std::optional<US_MarketHoliday> operator()(std::chrono::year which_year) const;
 };
 
 struct ChristmasHoliday
 {
-    std::string holiday_name_;
-    std::chrono::month_day holiday_rule_;
-
-    ChristmasHoliday(std::string name, std::chrono::month_day rule);
+    static constexpr char holiday_name_[] = "Christmas Day";
+    static constexpr std::chrono::month_day holiday_rule_ = std::chrono::December / 25d;
     std::optional<US_MarketHoliday> operator()(std::chrono::year which_year) const;
 };
 
 struct CartersDayHoliday
 {
-    std::string holiday_name_;
-    std::chrono::year_month_day holiday_rule_;
-
-    CartersDayHoliday(std::string name, std::chrono::year_month_day rule);
+    static constexpr char holiday_name_[] = "Carter Memorial";
+    static constexpr std::chrono::year_month_day holiday_rule_ = 2025y / std::chrono::January / 9d;
     std::optional<US_MarketHoliday> operator()(std::chrono::year which_year) const;
 };
 
@@ -155,4 +120,4 @@ using HolidayRuleVariant = std::variant<NewYearsHoliday, MLKDayHoliday, Washingt
 // Function to generate a list of US market holidays for the given year
 US_MarketHolidays MakeHolidayList(std::chrono::year which_year);
 
-#endif // US_HOLIDAYS_H
+#endif /* US_HOLIDAYS_H_ */
