@@ -244,9 +244,8 @@ std::vector<std::chrono::year_month_day> ConstructeBusinessDayList(std::chrono::
         days += day_increment;
     }
 
-    std::print("\nBusiness days found: {}\n{}\n\n", business_days, business_days.size());
-    //    ranges::for_each(business_days, [](const auto& e) { std::cout << e << '\n'; });
-    //    std::cout << "how many: " << business_days.size() << '\n';
+    // std::print("\nBusiness days found: {}\n{}\n\n", business_days, business_days.size());
+
     return business_days;
 } // -----  end of function ConstructeBusinessDayList  -----
 
