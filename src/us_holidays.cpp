@@ -22,6 +22,12 @@ extern "C"
 
 #include "us_holidays.h"
 
+// Static list of holiday rule instances
+static const std::vector<HolidayRuleVariant> HolidayRules = {
+    NewYearsHoliday{},     MLKDayHoliday{},     WashingtonBdayHoliday{},  GoodFridayHoliday{},
+    MemorialDayHoliday{},  JuneteenthHoliday{}, IndependenceDayHoliday{}, LaborDayHoliday{},
+    ThanksgivingHoliday{}, ChristmasHoliday{},  CartersDayHoliday{}};
+
 // --- Individual Holiday Rule Structs Implementations ---
 
 std::optional<US_MarketHoliday> NewYearsHoliday::operator()(std::chrono::year which_year) const
@@ -147,15 +153,9 @@ std::optional<US_MarketHoliday> CartersDayHoliday::operator()(std::chrono::year 
 // =====================================================================================
 US_MarketHolidays MakeHolidayList(std::chrono::year which_year)
 {
-    // Static list of holiday rule instances
-    static const std::vector<HolidayRuleVariant> holiday_rules = {
-        NewYearsHoliday{},     MLKDayHoliday{},     WashingtonBdayHoliday{},  GoodFridayHoliday{},
-        MemorialDayHoliday{},  JuneteenthHoliday{}, IndependenceDayHoliday{}, LaborDayHoliday{},
-        ThanksgivingHoliday{}, ChristmasHoliday{},  CartersDayHoliday{}};
-
     US_MarketHolidays h_days;
 
-    for (const auto &x : holiday_rules)
+    for (const auto &h_rule : HolidayRules)
     {
         std::visit(
             [&](const auto &rule_struct) {
@@ -164,7 +164,7 @@ US_MarketHolidays MakeHolidayList(std::chrono::year which_year)
                     h_days.emplace_back(*holiday);
                 }
             },
-            x);
+            h_rule);
     }
 
     return h_days;
