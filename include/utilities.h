@@ -257,7 +257,8 @@ std::vector<StockDataRecord> ConvertJSONPriceHistory(const std::string &symbol, 
 
 // help us out for testing
 
-template <> struct std::formatter<decimal::Decimal> : std::formatter<std::string>
+template <>
+struct std::formatter<decimal::Decimal> : std::formatter<std::string>
 {
     // parse is inherited from formatter<string>.
     auto format(const decimal::Decimal &dec, std::format_context &ctx) const
@@ -270,7 +271,8 @@ template <> struct std::formatter<decimal::Decimal> : std::formatter<std::string
 
 // custom fmtlib formatter for filesytem paths
 
-template <> struct std::formatter<std::filesystem::path> : std::formatter<std::string>
+template <>
+struct std::formatter<std::filesystem::path> : std::formatter<std::string>
 {
     // parse is inherited from formatter<string>.
     auto format(const std::filesystem::path &p, std::format_context &ctx) const
@@ -283,7 +285,8 @@ template <> struct std::formatter<std::filesystem::path> : std::formatter<std::s
 
 // custom formatter for PriceDataRecord
 
-template <> struct std::formatter<StockDataRecord> : std::formatter<std::string>
+template <>
+struct std::formatter<StockDataRecord> : std::formatter<std::string>
 {
     // parse is inherited from formatter<string>.
     auto format(const StockDataRecord &pdr, std::format_context &ctx) const
@@ -295,9 +298,25 @@ template <> struct std::formatter<StockDataRecord> : std::formatter<std::string>
     }
 };
 
+// custom formatter for PriceDataRecord
+
+template <>
+struct std::formatter<TopOfBookOpenAndLastClose> : std::formatter<std::string>
+{
+    // parse is inherited from formatter<string>.
+    auto format(const TopOfBookOpenAndLastClose &tob, std::format_context &ctx) const
+    {
+        std::string record;
+        std::format_to(std::back_inserter(record), "{}, {}, {}, {}, {}", tob.symbol_, tob.open_, tob.last_,
+                       tob.previous_close_, tob.time_stamp_nsecs_);
+        return formatter<std::string>::format(record, ctx);
+    }
+};
+
 // custom formatter for US market status.
 
-template <> struct std::formatter<US_MarketStatus> : std::formatter<std::string>
+template <>
+struct std::formatter<US_MarketStatus> : std::formatter<std::string>
 {
     // parse is inherited from formatter<string>.
     auto format(US_MarketStatus status, std::format_context &ctx) const
