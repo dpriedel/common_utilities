@@ -33,12 +33,24 @@
 #include <vector>
 
 #include <boost/assert.hpp>
+#include <boost/decimal.hpp>
+
+namespace bd = boost::decimal;
+using Decimal = bd::decimal64_t;
 
 #include <json/json.h>
 
 #include <decimal.hh>
 
 namespace fs = std::filesystem;
+
+// function to mimic output from mpdecimal's exponent function
+// for the Boost Decimal library
+
+inline int GetExponent(const Decimal &val)
+{
+    return -(static_cast<int>(bd::quantexp(val)) - bd::detail::bias_v<Decimal>);
+}
 
 // mpdecimal does not include functions for working with floating point types
 // so provided minimal interface through character representatons as intermediaries.
