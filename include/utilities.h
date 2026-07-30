@@ -40,7 +40,7 @@ using Decimal = bd::decimal64_t;
 
 #include <json/json.h>
 
-#include <decimal.hh>
+// #include <decimal.hh>
 
 namespace fs = std::filesystem;
 
@@ -68,13 +68,13 @@ auto rescale_dpr(T value, int fractional_digits)
 // mpdecimal does not include functions for working with floating point types
 // so provided minimal interface through character representatons as intermediaries.
 //
-decimal::Decimal dbl2dec(double number);
-
-double dec2dbl(const decimal::Decimal &dec);
-
-// convenience function to construct a Decimal from a string view
-
-decimal::Decimal sv2dec(std::string_view text);
+// decimal::Decimal dbl2dec(double number);
+//
+// double dec2dbl(const decimal::Decimal &dec);
+//
+// // convenience function to construct a Decimal from a string view
+//
+// Decimal sv2dec(std::string_view text);
 
 // keep our database related parms together
 
@@ -107,32 +107,32 @@ struct StockDataRecord
 {
     std::string date_;
     std::string symbol_;
-    decimal::Decimal open_;
-    decimal::Decimal high_;
-    decimal::Decimal low_;
-    decimal::Decimal close_;
+    Decimal open_;
+    Decimal high_;
+    Decimal low_;
+    Decimal close_;
 };
 
 struct TopOfBookOpenAndLastClose
 {
     std::string symbol_;
     std::chrono::utc_clock::time_point time_stamp_nsecs_;
-    decimal::Decimal open_;
-    decimal::Decimal last_;
-    decimal::Decimal previous_close_;
+    Decimal open_;
+    Decimal last_;
+    Decimal previous_close_;
 };
 
 struct DateCloseRecord
 {
     std::chrono::utc_clock::time_point date_;
-    decimal::Decimal close_;
+    Decimal close_;
 };
 
 struct MultiSymbolDateCloseRecord
 {
     std::string symbol_;
     std::chrono::utc_clock::time_point date_;
-    decimal::Decimal close_;
+    Decimal close_;
 };
 
 // This ctype facet does NOT classify spaces and tabs as whitespace
@@ -282,18 +282,18 @@ std::vector<StockDataRecord> ConvertJSONPriceHistory(const std::string &symbol, 
 
 // help us out for testing
 
-template <>
-struct std::formatter<decimal::Decimal> : std::formatter<std::string>
-{
-    // parse is inherited from formatter<string>.
-    auto format(const decimal::Decimal &dec, std::format_context &ctx) const
-    {
-        std::string d;
-        std::format_to(std::back_inserter(d), "{}", dec.format("f"));
-        return formatter<std::string>::format(d, ctx);
-    }
-};
-
+// template <>
+// struct std::formatter<Decimal> : std::formatter<std::string>
+// {
+//     // parse is inherited from formatter<string>.
+//     auto format(const Decimal &dec, std::format_context &ctx) const
+//     {
+//         std::string d;
+//         std::format_to(std::back_inserter(d), "{}", dec);
+//         return formatter<std::string>::format(d, ctx);
+//     }
+// };
+//
 // custom fmtlib formatter for filesytem paths
 
 template <>
