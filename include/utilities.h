@@ -54,27 +54,17 @@ inline int GetExponent(const Decimal &val)
 
 // Helper to scale by fractional digits instead of total significant digits
 template <typename T>
-    requires std::is_same_v<T, boost::decimal::decimal64_t> // or generic
+    requires std::is_same_v<T, bd::decimal64_t> // or generic
 auto rescale_dpr(T value, int fractional_digits)
 {
     // 1. Get the whole number part as a standard 64-bit integer
     // 2. Convert to string and find how many digits sit before the decimal point
-    auto whole_part = static_cast<long long>(boost::decimal::trunc(value));
+    auto whole_part = static_cast<long long>(bd::trunc(value));
     int digits_before_dot = std::to_string(std::abs(whole_part)).length();
 
     // 3. Add that count to your desired fractional digits to feed into rescale
-    return boost::decimal::rescale(value, digits_before_dot + fractional_digits);
+    return bd::rescale(value, digits_before_dot + fractional_digits);
 }
-// mpdecimal does not include functions for working with floating point types
-// so provided minimal interface through character representatons as intermediaries.
-//
-// decimal::Decimal dbl2dec(double number);
-//
-// double dec2dbl(const decimal::Decimal &dec);
-//
-// // convenience function to construct a Decimal from a string view
-//
-// Decimal sv2dec(std::string_view text);
 
 // keep our database related parms together
 
